@@ -742,6 +742,85 @@ export const getDestinationImages = (destination: string, travelType: 'domestic'
   ];
 };
 
+export const getTransportDetails = (
+  travelType: 'domestic' | 'international',
+  tier: 'economic' | 'middle_luxury' | 'luxury'
+): string[] => {
+  if (tier === 'luxury') {
+    return [
+      'Private luxury vehicle with professional chauffeur',
+      'Airport transfers in premium sedan/SUV',
+      'Inter-city travel in first class train or private car',
+      'All tolls, parking, and fuel included',
+    ];
+  } else if (tier === 'middle_luxury') {
+    return [
+      'Comfortable AC vehicle for all transfers',
+      'Airport pick-up and drop service',
+      'Inter-city travel in AC coach or train',
+      'Experienced driver with local knowledge',
+    ];
+  } else {
+    return [
+      'Shared transfers where applicable',
+      'Airport pick-up by cab/coach',
+      'Inter-city travel by AC sleeper train or bus',
+      'Local transport as per itinerary',
+    ];
+  }
+};
+
+export const getInclusions = (
+  tier: 'economic' | 'middle_luxury' | 'luxury',
+  days: number
+): string[] => {
+  const baseInclusions = [
+    `${days - 1} nights accommodation`,
+    'Daily breakfast',
+    'All sightseeing as per itinerary',
+    'All transfers and transportation',
+    'Toll tax, parking, fuel charges',
+    'Professional tour guide',
+    'All applicable taxes',
+  ];
+
+  if (tier === 'luxury') {
+    return [
+      ...baseInclusions,
+      'Welcome drink on arrival',
+      'Lunch and dinner at premium restaurants',
+      'Complimentary spa session',
+      'Personal tour manager',
+      'Travel insurance',
+      'Premium property accommodations',
+    ];
+  } else if (tier === 'middle_luxury') {
+    return [
+      ...baseInclusions,
+      'Select lunches included',
+      'Welcome refreshments',
+      'Tour escort services',
+      'Complimentary water bottles',
+    ];
+  }
+
+  return baseInclusions;
+};
+
+export const getExclusions = (): string[] => {
+  return [
+    'International/Domestic airfare',
+    'Personal expenses (laundry, phone calls, etc.)',
+    'Meals not mentioned in inclusions',
+    'Entry fees to monuments and parks',
+    'Camera fees at monuments',
+    'Travel insurance (unless specified)',
+    'Tips and gratuities',
+    'Any services not mentioned in inclusions',
+    'GST as applicable',
+  ];
+};
+
 export const getHotelName = (
   destination: string,
   travelType: 'domestic' | 'international',
