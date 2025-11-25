@@ -21,7 +21,6 @@ import { useAuth } from '../contexts/AuthContext';
 import {
   calculatePrice,
   getDurationDays,
-  generateDifferentiatedActivities,
   getDestinationData,
   getDestinationImages,
   getHotelName,
@@ -29,6 +28,12 @@ import {
   getInclusions,
   getExclusions,
 } from '../utils/itineraryGenerator';
+import {
+  generateEnhancedActivities,
+  fetchAndCachePlaces,
+  EnhancedActivity
+} from '../utils/enhancedItineraryGenerator';
+import { Place } from '../services/placesApi';
 
 interface Itinerary {
   title: string;
@@ -44,6 +49,7 @@ interface Itinerary {
     day: number;
     title: string;
     activities: string[];
+    enhancedActivities?: EnhancedActivity[];
   }>;
   highlights: string[];
   images: string[];
@@ -77,7 +83,7 @@ export default function ItineraryResults() {
     return 2;
   };
 
-  const generateItineraries = () => {
+  const generateItineraries = async () => {
     const tiers: Array<{ type: 'economic' | 'middle_luxury' | 'luxury'; title: string; description: string }> = [
       { type: 'economic', title: 'Economic Package', description: 'Budget-friendly with essential amenities' },
       { type: 'middle_luxury', title: 'Mid-Luxury Package', description: 'Balanced comfort and value' },
@@ -87,69 +93,95 @@ export default function ItineraryResults() {
     const days = getDurationDays(preferences.duration);
     const destData = getDestinationData(preferences.destination, preferences.travelType);
 
-    const generatedItineraries = tiers.map((tier) => {
-      const totalPrice = calculatePrice(
-        preferences.destination,
-        preferences.travelType,
-        preferences.duration,
-        tier.type,
-        preferences.accommodation
-      );
-
-      const pricePerPerson = Math.round(totalPrice / (preferences.travelers || 2));
-
-      const dayPlans = Array.from({ length: days }, (_, i) => {
-        const dayNumber = i + 1;
-        const activities = generateDifferentiatedActivities(
+    const generatedItineraries = await Promise.all(
+      tiers.map(async (tier) => {
+        const totalPrice = calculatePrice(
           preferences.destination,
           preferences.travelType,
-          tier.type,
-          dayNumber,
-          days,
-          preferences.interests || [],
-          preferences.culturalPreferences || []
-        );
-
-        let title = '';
-        if (dayNumber === 1) {
-          title = `Arrival in ${preferences.destination}`;
-        } else if (dayNumber === days) {
-          title = `Departure from ${preferences.destination}`;
-        } else {
-          const cityIndex = (dayNumber - 2) % destData.cities.length;
-          title = `Explore ${destData.cities[cityIndex]}`;
-        }
-
-        return {
-          day: dayNumber,
-          title,
-          activities,
-        };
-      });
-
-      return {
-        title: `${preferences.destination} - ${tier.title}`,
-        type: tier.type,
-        totalPrice,
-        pricePerPerson,
-        hotelName: getHotelName(
-          preferences.destination,
-          preferences.travelType,
+          preferences.duration,
           tier.type,
           preferences.accommodation
-        ),
-        transportDetails: getTransportDetails(preferences.travelType, tier.type),
-        inclusions: getInclusions(tier.type, days),
-        exclusions: getExclusions(),
-        duration: `${days} Days / ${days - 1} Nights`,
-        days: dayPlans,
-        highlights: destData.attractions.slice(0, 6),
-        images: getDestinationImages(preferences.destination, preferences.travelType),
-        destination: preferences.destination,
-        cities: destData.cities,
-        attractions: destData.attractions,
-      };
-    });
+        );
+
+        const pricePerPerson = Math.round(totalPrice / (preferences.travelers || 2));
+
+        const cachedPlaces = await fetchAndCachePlaces(
+          preferences.destination,
+          preferences.interests || [],
+          preferences.culturalPreferences || [],
+          tier.type
+        );
+
+        const dayPlans = await Promise.all(
+          Array.from({ length: days }, async (_, i) => {
+            const dayNumber = i + 1;
+            const enhancedActivities = await generateEnhancedActivities(
+              preferences.destination,
+              preferences.travelType,
+              tier.type,
+              dayNumber,
+              days,
+              preferences.interests || [],
+              preferences.culturalPreferences || [],
+              cachedPlaces
+            );
+
+            const activities = enhancedActivities.map(act => {
+              if (act.description) {
+                return `${act.name} - ${act.description}`;
+              }
+              return act.name;
+            });
+
+            let title = '';
+            if (dayNumber === 1) {
+              title = `Arrival in ${preferences.destination}`;
+            } else if (dayNumber === days) {
+              title = `Departure from ${preferences.destination}`;
+            } else {
+              const cityIndex = (dayNumber - 2) % destData.cities.length;
+              title = `Explore ${destData.cities[cityIndex]}`;
+            }
+
+            return {
+              day: dayNumber,
+              title,
+              activities,
+              enhancedActivities,
+            };
+          })
+        );
+
+        const highlights = cachedPlaces.length > 0
+          ? cachedPlaces.slice(0, 6).map(p => p.name)
+          : destData.attractions.slice(0, 6);
+
+        return {
+          title: `${preferences.destination} - ${tier.title}`,
+          type: tier.type,
+          totalPrice,
+          pricePerPerson,
+          hotelName: getHotelName(
+            preferences.destination,
+            preferences.travelType,
+            tier.type,
+            preferences.accommodation
+          ),
+          transportDetails: getTransportDetails(preferences.travelType, tier.type),
+          inclusions: getInclusions(tier.type, days),
+          exclusions: getExclusions(),
+          duration: `${days} Days / ${days - 1} Nights`,
+          days: dayPlans,
+          highlights,
+          images: getDestinationImages(preferences.destination, preferences.travelType),
+          destination: preferences.destination,
+          cities: destData.cities,
+          attractions: cachedPlaces.length > 0
+            ? cachedPlaces.map(p => p.name)
+            : destData.attractions,
+        };
+      })
+    );
 
     setItineraries(generatedItineraries);
     setLoading(false);
@@ -420,13 +452,40 @@ export default function ItineraryResults() {
 
                       {expandedDay === day.day && (
                         <div className="p-6 bg-white border-t border-gray-100 animate-fade-in">
-                          <ul className="space-y-3">
-                            {day.activities.map((activity, aIndex) => (
-                              <li key={aIndex} className="flex items-start space-x-3">
-                                <Check className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
-                                <span className="text-gray-700">{activity}</span>
-                              </li>
-                            ))}
+                          <ul className="space-y-4">
+                            {day.enhancedActivities && day.enhancedActivities.length > 0 ? (
+                              day.enhancedActivities.map((activity, aIndex) => (
+                                <li key={aIndex} className="flex items-start space-x-3">
+                                  <Check className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
+                                  <div className="flex-1">
+                                    <div className="flex items-center space-x-2 mb-1">
+                                      <span className="text-gray-900 font-medium">{activity.name}</span>
+                                      {activity.category && (
+                                        <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full">
+                                          {activity.category}
+                                        </span>
+                                      )}
+                                      {activity.rating && activity.rating > 5 && (
+                                        <span className="px-2 py-0.5 bg-yellow-100 text-yellow-700 text-xs rounded-full flex items-center">
+                                          <Star className="h-3 w-3 mr-1 fill-current" />
+                                          Popular Spot
+                                        </span>
+                                      )}
+                                    </div>
+                                    {activity.description && (
+                                      <p className="text-sm text-gray-600">{activity.description}</p>
+                                    )}
+                                  </div>
+                                </li>
+                              ))
+                            ) : (
+                              day.activities.map((activity, aIndex) => (
+                                <li key={aIndex} className="flex items-start space-x-3">
+                                  <Check className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
+                                  <span className="text-gray-700">{activity}</span>
+                                </li>
+                              ))
+                            )}
                           </ul>
                         </div>
                       )}
