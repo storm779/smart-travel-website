@@ -320,7 +320,10 @@ export default function ItineraryResults() {
 
                 <div className="space-y-3">
                   <button
-                    onClick={() => setSelectedItinerary(itinerary)}
+                    onClick={() => {
+                      setSelectedItinerary(itinerary);
+                      setExpandedDay(2);
+                    }}
                     className={`w-full bg-gradient-to-r ${getTierColor(itinerary.type)} text-white font-bold py-3 px-4 rounded-xl transition transform hover:scale-105 shadow-md hover:shadow-lg flex items-center justify-center space-x-2`}
                   >
                     <Info className="h-5 w-5" />
@@ -423,16 +426,24 @@ export default function ItineraryResults() {
               </div>
 
               <div className="mb-8">
-                <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
-                  <Calendar className="h-6 w-6 mr-2 text-blue-600" />
-                  Day-by-Day Itinerary
-                </h3>
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-2xl font-bold text-gray-900 flex items-center">
+                    <Calendar className="h-6 w-6 mr-2 text-blue-600" />
+                    Day-by-Day Itinerary
+                  </h3>
+                  <button
+                    onClick={() => setExpandedDay(expandedDay ? null : 2)}
+                    className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                  >
+                    {expandedDay ? 'Collapse All' : 'Click on any day to view details'}
+                  </button>
+                </div>
                 <div className="space-y-4">
                   {selectedItinerary.days.map((day) => (
                     <div key={day.day} className="border border-gray-200 rounded-2xl overflow-hidden hover:border-blue-300 transition">
                       <button
                         onClick={() => toggleDay(day.day)}
-                        className="w-full bg-gradient-to-r from-gray-50 to-white p-6 flex items-center justify-between hover:from-blue-50 hover:to-blue-50 transition"
+                        className="w-full bg-gradient-to-r from-gray-50 to-white p-6 flex items-center justify-between hover:from-blue-50 hover:to-blue-50 transition cursor-pointer"
                       >
                         <div className="flex items-center space-x-4">
                           <div className="bg-blue-600 text-white w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg">
@@ -441,6 +452,9 @@ export default function ItineraryResults() {
                           <div className="text-left">
                             <p className="text-sm text-gray-500 font-medium">Day {day.day}</p>
                             <p className="text-lg font-bold text-gray-900">{day.title}</p>
+                            <p className="text-xs text-gray-500 mt-1">
+                              {day.enhancedActivities?.length || day.activities.length} activities • Click to view details
+                            </p>
                           </div>
                         </div>
                         <ChevronDown
