@@ -34,6 +34,7 @@ import {
   EnhancedActivity
 } from '../utils/enhancedItineraryGenerator';
 import { Place } from '../services/placesApi';
+import { generateCityAwareItinerary, DayPlan } from '../utils/cityAwareItineraryGenerator';
 
 interface Itinerary {
   title: string;
@@ -47,7 +48,9 @@ interface Itinerary {
   duration: string;
   days: Array<{
     day: number;
+    city: string;
     title: string;
+    shortSummary?: string;
     activities: string[];
     enhancedActivities?: EnhancedActivity[];
   }>;
@@ -105,55 +108,51 @@ export default function ItineraryResults() {
 
         const pricePerPerson = Math.round(totalPrice / (preferences.travelers || 2));
 
-        const cachedPlaces = await fetchAndCachePlaces(
+        const apiPlacesMap = new Map<string, Place[]>();
+
+        for (const city of destData.cities) {
+          const cityPlaces = await fetchAndCachePlaces(
+            city,
+            preferences.interests || [],
+            preferences.culturalPreferences || [],
+            tier.type
+          );
+          if (cityPlaces.length > 0) {
+            apiPlacesMap.set(city, cityPlaces);
+          }
+        }
+
+        const cityAwareDayPlans = generateCityAwareItinerary(
           preferences.destination,
+          destData.cities,
+          days,
+          tier.type,
           preferences.interests || [],
-          preferences.culturalPreferences || [],
-          tier.type
+          apiPlacesMap
         );
 
-        const dayPlans = await Promise.all(
-          Array.from({ length: days }, async (_, i) => {
-            const dayNumber = i + 1;
-            const enhancedActivities = await generateEnhancedActivities(
-              preferences.destination,
-              preferences.travelType,
-              tier.type,
-              dayNumber,
-              days,
-              preferences.interests || [],
-              preferences.culturalPreferences || [],
-              cachedPlaces
-            );
-
-            const activities = enhancedActivities.map(act => {
-              if (act.description) {
-                return `${act.name} - ${act.description}`;
-              }
-              return act.name;
-            });
-
-            let title = '';
-            if (dayNumber === 1) {
-              title = `Arrival in ${preferences.destination}`;
-            } else if (dayNumber === days) {
-              title = `Departure from ${preferences.destination}`;
-            } else {
-              const cityIndex = (dayNumber - 2) % destData.cities.length;
-              title = `Explore ${destData.cities[cityIndex]}`;
+        const dayPlans = cityAwareDayPlans.map(dayPlan => ({
+          day: dayPlan.day,
+          city: dayPlan.city,
+          title: dayPlan.title,
+          shortSummary: dayPlan.shortSummary,
+          activities: dayPlan.activities.map(act => {
+            if (act.subtitle) {
+              return `${act.title} - ${act.subtitle}`;
             }
+            return act.title;
+          }),
+          enhancedActivities: dayPlan.activities.map(act => ({
+            type: 'place' as const,
+            name: act.title,
+            description: act.subtitle,
+            category: act.category,
+          })),
+        }));
 
-            return {
-              day: dayNumber,
-              title,
-              activities,
-              enhancedActivities,
-            };
-          })
-        );
-
-        const highlights = cachedPlaces.length > 0
-          ? cachedPlaces.slice(0, 6).map(p => p.name)
+        const allPlaces = Array.from(apiPlacesMap.values()).flat();
+        const highlights = allPlaces.length > 0
+          ? allPlaces.slice(0, 6).map(p => p.name)
           : destData.attractions.slice(0, 6);
 
         return {
@@ -176,8 +175,8 @@ export default function ItineraryResults() {
           images: getDestinationImages(preferences.destination, preferences.travelType),
           destination: preferences.destination,
           cities: destData.cities,
-          attractions: cachedPlaces.length > 0
-            ? cachedPlaces.map(p => p.name)
+          attractions: allPlaces.length > 0
+            ? allPlaces.map(p => p.name)
             : destData.attractions,
         };
       })
@@ -450,9 +449,12 @@ export default function ItineraryResults() {
                             {day.day}
                           </div>
                           <div className="text-left">
-                            <p className="text-sm text-gray-500 font-medium">Day {day.day}</p>
+                            <p className="text-sm text-gray-500 font-medium">Day {day.day} • {day.city}</p>
                             <p className="text-lg font-bold text-gray-900">{day.title}</p>
-                            <p className="text-xs text-gray-500 mt-1">
+                            {day.shortSummary && (
+                              <p className="text-xs text-gray-600 mt-0.5">{day.shortSummary}</p>
+                            )}
+                            <p className="text-xs text-blue-600 mt-1">
                               {day.enhancedActivities?.length || day.activities.length} activities • Click to view details
                             </p>
                           </div>
