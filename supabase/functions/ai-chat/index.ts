@@ -42,7 +42,7 @@ async function fetchPackagesContext(supabaseUrl: string, supabaseKey: string): P
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     const { data: packages, error } = await supabase
-      .from("travel_packages")
+      .from("packages")
       .select("*")
       .limit(50);
 
@@ -61,14 +61,15 @@ async function fetchPackagesContext(supabaseUrl: string, supabaseKey: string): P
     const packagesList = packages
       .map(
         (pkg) =>
-          `- ${pkg.name} (${pkg.destination}): ${pkg.duration} days, ${pkg.category} package, Price: ₹${pkg.base_price} per person. Description: ${pkg.description || "N/A"}`
+          `- ${pkg.title} (${pkg.destination}): ${pkg.duration_days} days/${pkg.duration_nights} nights, ${pkg.theme} package, Price: ₹${pkg.price_per_person} per person. Category: ${pkg.category}. Description: ${pkg.description || "N/A"}`
       )
       .join("\n");
 
     const destinations = [...new Set(packages.map((p) => p.destination))].join(", ");
+    const themes = [...new Set(packages.map((p) => p.theme))].join(", ");
     const categories = [...new Set(packages.map((p) => p.category))].join(", ");
 
-    return `Available Travel Packages:\n${packagesList}\n\nAvailable Destinations: ${destinations}\n\nPackage Categories: ${categories}`;
+    return `Available Travel Packages:\n${packagesList}\n\nAvailable Destinations: ${destinations}\n\nPackage Themes: ${themes}\n\nPackage Categories: ${categories}`;
   } catch (error) {
     console.error("[ERROR] Exception in fetchPackagesContext:", error);
     return "Unable to fetch package information at the moment.";
