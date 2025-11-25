@@ -55,10 +55,12 @@ export default function SupportChatbot() {
     try {
       const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-chat`;
 
+      console.log('[DEBUG] Calling AI chat API:', apiUrl);
+      console.log('[DEBUG] Request payload:', { message: input, sessionId });
+
       const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -67,11 +69,17 @@ export default function SupportChatbot() {
         }),
       });
 
+      console.log('[DEBUG] Response status:', response.status);
+      console.log('[DEBUG] Response ok:', response.ok);
+
       if (!response.ok) {
-        throw new Error('Failed to get response from AI');
+        const errorText = await response.text();
+        console.error('[ERROR] API error response:', errorText);
+        throw new Error(`Failed to get response from AI: ${response.status}`);
       }
 
       const data = await response.json();
+      console.log('[DEBUG] API response data:', data);
 
       if (data.sessionId && !sessionId) {
         setSessionId(data.sessionId);
