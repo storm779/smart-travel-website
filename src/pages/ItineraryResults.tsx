@@ -259,25 +259,15 @@ export default function ItineraryResults() {
               </div>
 
               <div className="p-6">
-                <div className="space-y-4 mb-6">
-                  <div className="flex items-center justify-between bg-gradient-to-r from-blue-50 to-blue-100 p-4 rounded-xl">
+                <div className="mb-6">
+                  <div className="flex items-center justify-between bg-gradient-to-r from-blue-50 to-blue-100 p-5 rounded-xl">
                     <div>
-                      <p className="text-xs text-gray-600 font-medium">Total Cost</p>
-                      <p className="text-2xl font-bold text-gray-900">
+                      <p className="text-sm text-gray-600 font-medium">Total Cost</p>
+                      <p className="text-3xl font-bold text-gray-900">
                         ₹{itinerary.totalPrice.toLocaleString('en-IN')}
                       </p>
                     </div>
-                    <IndianRupee className="h-8 w-8 text-blue-600" />
-                  </div>
-
-                  <div className="flex items-center justify-between bg-gradient-to-r from-purple-50 to-purple-100 p-4 rounded-xl">
-                    <div>
-                      <p className="text-xs text-gray-600 font-medium">Per Person</p>
-                      <p className="text-2xl font-bold text-gray-900">
-                        ₹{itinerary.pricePerPerson.toLocaleString('en-IN')}
-                      </p>
-                    </div>
-                    <Users className="h-8 w-8 text-purple-600" />
+                    <IndianRupee className="h-10 w-10 text-blue-600" />
                   </div>
                 </div>
 
@@ -366,7 +356,7 @@ export default function ItineraryResults() {
             </div>
 
             <div className="p-8">
-              <div className="grid md:grid-cols-3 gap-6 mb-8">
+              <div className="grid md:grid-cols-2 gap-6 mb-8">
                 <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-2xl">
                   <div className="flex items-center space-x-2 mb-2">
                     <IndianRupee className="h-6 w-6 text-blue-600" />
@@ -374,16 +364,6 @@ export default function ItineraryResults() {
                   </div>
                   <p className="text-3xl font-bold text-gray-900">
                     ₹{selectedItinerary.totalPrice.toLocaleString('en-IN')}
-                  </p>
-                </div>
-
-                <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-6 rounded-2xl">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <Users className="h-6 w-6 text-purple-600" />
-                    <span className="text-sm text-gray-600 font-medium">Per Person</span>
-                  </div>
-                  <p className="text-3xl font-bold text-gray-900">
-                    ₹{selectedItinerary.pricePerPerson.toLocaleString('en-IN')}
                   </p>
                 </div>
 
@@ -517,18 +497,12 @@ export default function ItineraryResults() {
                 </div>
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-4">
+              <div>
                 <button
                   onClick={() => handleBookItinerary(selectedItinerary)}
-                  className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold py-4 px-8 rounded-xl transition transform hover:scale-105 shadow-lg"
+                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold py-4 px-8 rounded-xl transition transform hover:scale-105 shadow-lg"
                 >
                   Book This Package
-                </button>
-                <button
-                  onClick={() => navigate('/contact')}
-                  className="flex-1 bg-white border-2 border-blue-600 text-blue-600 hover:bg-blue-50 font-bold py-4 px-8 rounded-xl transition"
-                >
-                  Customize Package
                 </button>
               </div>
             </div>
