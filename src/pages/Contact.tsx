@@ -19,7 +19,7 @@ export default function Contact() {
           </div>
         </Reveal>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-2 mb-16">
           <Reveal delay={200}>
             <div className="bg-gray-50 p-8 rounded-3xl hover:shadow-xl transition-all duration-300 text-center group border border-transparent hover:border-gray-100 h-full">
               <Phone className="h-12 w-12 text-lilac mx-auto mb-6 group-hover:scale-110 transition-transform duration-300" />
@@ -48,7 +48,7 @@ export default function Contact() {
           </Reveal>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
           <Reveal delay={200}>
             <div className="bg-white rounded-[2.5rem] shadow-lg p-10 border border-gray-100 h-full">
               <h2 className="text-3xl font-light text-gray-900 mb-8 font-kugile italic">

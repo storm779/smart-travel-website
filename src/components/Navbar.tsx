@@ -43,7 +43,7 @@ export default function Navbar() {
   };
 
   const textColorClass = isHome ? "text-white" : "text-gray-900";
-  const hoverClass = isHome ? "hover:text-lilac-300" : "hover:text-lilac-600";
+  const hoverClass = isHome ? "hover:scale-105" : "hover:scale-110";
   const buttonBorderClass = isHome ? "border-white" : "border-gray-900";
   const buttonHoverClass = isHome
     ? "hover:bg-white hover:text-gray-900"
@@ -88,6 +88,11 @@ export default function Navbar() {
               to="/packages"
               className={linkClass}>
               Travel Packages
+            </Link>
+            <Link
+              to="/contact"
+              className={linkClass}>
+              Contact Us
             </Link>
 
             {user ? (
