@@ -1,7 +1,42 @@
-import { Mail, Phone, MapPin, Clock } from "lucide-react";
+import { useState } from "react";
+import { Mail, Phone, MapPin, Clock, Send, CheckCircle, AlertCircle } from "lucide-react";
 import { Reveal } from "../components/Reveal";
+import { supabase } from "../lib/supabase";
 
 export default function Contact() {
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    message: "",
+  });
+  const [loading, setLoading] = useState(false);
+  const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setStatus("idle");
+
+    try {
+      const { error } = await supabase.from("contact_messages").insert([formData]);
+
+      if (error) throw error;
+
+      setStatus("success");
+      setFormData({ name: "", email: "", phone: "", message: "" });
+    } catch (error) {
+      console.error("Error sending message:", error);
+      setStatus("error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-white pt-28 pb-16 font-sans">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -54,11 +89,17 @@ export default function Contact() {
               <h2 className="text-3xl font-light text-gray-900 mb-8 font-kugile italic">
                 Send us a Message
               </h2>
-              <form className="space-y-6">
+              <form
+                onSubmit={handleSubmit}
+                className="space-y-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2 ml-1">Name</label>
                   <input
                     type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    required
                     className="w-full bg-gray-50 border-none rounded-xl px-6 py-4 focus:outline-none focus:ring-2 focus:ring-lilac/20 transition-all"
                     placeholder="Your name"
                   />
@@ -68,6 +109,10 @@ export default function Contact() {
                   <label className="block text-sm font-medium text-gray-700 mb-2 ml-1">Email</label>
                   <input
                     type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    required
                     className="w-full bg-gray-50 border-none rounded-xl px-6 py-4 focus:outline-none focus:ring-2 focus:ring-lilac/20 transition-all"
                     placeholder="Your email"
                   />
@@ -77,6 +122,9 @@ export default function Contact() {
                   <label className="block text-sm font-medium text-gray-700 mb-2 ml-1">Phone</label>
                   <input
                     type="tel"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleChange}
                     className="w-full bg-gray-50 border-none rounded-xl px-6 py-4 focus:outline-none focus:ring-2 focus:ring-lilac/20 transition-all"
                     placeholder="Your phone number"
                   />
@@ -88,15 +136,41 @@ export default function Contact() {
                   </label>
                   <textarea
                     rows={4}
+                    name="message"
+                    value={formData.message}
+                    onChange={handleChange}
+                    required
                     className="w-full bg-gray-50 border-none rounded-xl px-6 py-4 focus:outline-none focus:ring-2 focus:ring-lilac/20 transition-all resize-none"
                     placeholder="How can we help you?"></textarea>
                 </div>
 
                 <button
                   type="submit"
-                  className="w-full bg-gray-900 hover:bg-lilac text-white font-bold py-4 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
-                  Send Message
+                  disabled={loading}
+                  className="w-full bg-gray-900 hover:bg-lilac text-white font-bold py-4 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 flex items-center justify-center space-x-2 disabled:opacity-70 disabled:cursor-not-allowed">
+                  {loading ? (
+                    <span>Sending...</span>
+                  ) : (
+                    <>
+                      <span>Send Message</span>
+                      <Send className="h-5 w-5" />
+                    </>
+                  )}
                 </button>
+
+                {status === "success" && (
+                  <div className="flex items-center space-x-2 text-green-600 bg-green-50 p-4 rounded-xl">
+                    <CheckCircle className="h-5 w-5" />
+                    <span>Message sent successfully! We'll get back to you soon.</span>
+                  </div>
+                )}
+
+                {status === "error" && (
+                  <div className="flex items-center space-x-2 text-red-600 bg-red-50 p-4 rounded-xl">
+                    <AlertCircle className="h-5 w-5" />
+                    <span>Something went wrong. Please try again later.</span>
+                  </div>
+                )}
               </form>
             </div>
           </Reveal>
