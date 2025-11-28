@@ -1,10 +1,10 @@
-import { useState, useRef, useEffect } from 'react';
-import { MessageCircle, X, Send, Loader2 } from 'lucide-react';
+import { useState } from "react";
+import { MessageCircle, X, Send } from "lucide-react";
 
 interface Message {
   id: string;
   text: string;
-  sender: 'user' | 'bot';
+  sender: "user" | "bot";
   timestamp: Date;
 }
 
@@ -12,31 +12,20 @@ export default function SupportChatbot() {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
-      id: '1',
-      text: 'Hello! I\'m SmartTravel AI. I can help you find travel packages, plan trips, and answer questions about our destinations. How can I assist you today?',
-      sender: 'bot',
+      id: "1",
+      text: "Hello! How can I help you today?",
+      sender: "bot",
       timestamp: new Date(),
     },
   ]);
-  const [input, setInput] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [sessionId, setSessionId] = useState<string>('');
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [input, setInput] = useState("");
 
   const quickReplies = [
-    'Show me beach packages',
-    'What destinations do you offer?',
-    'Recommend a luxury trip',
-    'Budget-friendly options',
+    "Payment failed",
+    "Modify booking",
+    "Cancellation policy",
+    "Contact support",
   ];
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
 
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
@@ -44,68 +33,40 @@ export default function SupportChatbot() {
     const userMessage: Message = {
       id: Date.now().toString(),
       text: input,
-      sender: 'user',
+      sender: "user",
       timestamp: new Date(),
     };
 
     setMessages((prev) => [...prev, userMessage]);
-    setInput('');
-    setIsLoading(true);
+    setInput("");
 
-    try {
-      const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-chat`;
-
-      console.log('[DEBUG] Calling AI chat API:', apiUrl);
-      console.log('[DEBUG] Request payload:', { message: input, sessionId });
-
-      const response = await fetch(apiUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+    setTimeout(() => {
+      const botResponse = getBotResponse(input.toLowerCase());
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: (Date.now() + 1).toString(),
+          text: botResponse,
+          sender: "bot",
+          timestamp: new Date(),
         },
-        body: JSON.stringify({
-          message: input,
-          sessionId: sessionId || undefined,
-        }),
-      });
+      ]);
+    }, 500);
+  };
 
-      console.log('[DEBUG] Response status:', response.status);
-      console.log('[DEBUG] Response ok:', response.ok);
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('[ERROR] API error response:', errorText);
-        throw new Error(`Failed to get response from AI: ${response.status}`);
-      }
-
-      const data = await response.json();
-      console.log('[DEBUG] API response data:', data);
-
-      if (data.sessionId && !sessionId) {
-        setSessionId(data.sessionId);
-      }
-
-      const botMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        text: data.reply || 'Sorry, I couldn\'t process that request. Please try again.',
-        sender: 'bot',
-        timestamp: new Date(),
-      };
-
-      setMessages((prev) => [...prev, botMessage]);
-    } catch (error) {
-      console.error('Error calling AI chat:', error);
-
-      const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        text: 'Sorry, I\'m having trouble connecting right now. Please try again in a moment or contact our support team at support@smarttravel.com',
-        sender: 'bot',
-        timestamp: new Date(),
-      };
-
-      setMessages((prev) => [...prev, errorMessage]);
-    } finally {
-      setIsLoading(false);
+  const getBotResponse = (query: string): string => {
+    if (query.includes("payment") || query.includes("pay")) {
+      return "For payment issues, please check:\n1. Your card has sufficient balance\n2. You entered correct CVV\n3. OTP verification is complete\n\nIf the issue persists, contact us at +91 98765 43210 or try a different payment method.";
+    } else if (query.includes("modify") || query.includes("change")) {
+      return 'To modify your booking:\n1. Go to "My Bookings"\n2. Select your booking\n3. Click "Request Modification"\n\nNote: Modifications are subject to availability and may incur charges.';
+    } else if (query.includes("cancel")) {
+      return 'Cancellation Policy:\n- 30+ days before travel: 90% refund\n- 15-29 days: 50% refund\n- 7-14 days: 25% refund\n- Less than 7 days: No refund\n\nTo cancel, visit "My Bookings" and click "Cancel Booking".';
+    } else if (query.includes("contact") || query.includes("support")) {
+      return "Contact our support team:\n📞 Phone: +91 98765 43210\n📧 Email: support@smarttravel.com\n⏰ Hours: 9 AM - 9 PM IST\n\nWould you like to request a callback?";
+    } else if (query.includes("refund")) {
+      return "Refunds are processed within 7-10 business days to the original payment method. You will receive an email confirmation once the refund is initiated.";
+    } else {
+      return "I can help you with:\n- Payment issues\n- Booking modifications\n- Cancellation policy\n- Contacting support\n\nPlease let me know what you need help with!";
     }
   };
 
@@ -117,29 +78,22 @@ export default function SupportChatbot() {
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 bg-green-600 text-white p-4 rounded-full shadow-lg hover:bg-green-700 transition z-50"
-        aria-label="Open chat"
-      >
+        className="fixed bottom-6 right-6 bg-lilac-600 hover:bg-lilac-700 hover:scale-105 text-white p-4 rounded-full shadow-lg transition ease-in-out duration-300 z-50">
         <MessageCircle className="h-6 w-6" />
       </button>
     );
   }
 
   return (
-    <div className="fixed bottom-6 right-6 w-96 bg-white rounded-lg shadow-2xl z-50 flex flex-col max-h-[600px]">
-      <div className="bg-green-600 text-white p-4 rounded-t-lg flex items-center justify-between">
+    <div className="fixed bottom-6 right-6 w-96 bg-white rounded-[2rem] shadow-2xl z-50 flex flex-col max-h-[600px] overflow-hidden">
+      <div className="bg-lilac-600 text-white p-4 flex items-center justify-between">
         <div className="flex items-center space-x-2">
           <MessageCircle className="h-5 w-5" />
-          <div>
-            <span className="font-semibold block">SmartTravel AI</span>
-            <span className="text-xs text-green-100">Powered by AI</span>
-          </div>
+          <span className="font-semibold font-kugile">Need Help?</span>
         </div>
         <button
           onClick={() => setIsOpen(false)}
-          className="hover:bg-green-700 rounded p-1"
-          aria-label="Close chat"
-        >
+          className="hover:bg-lilac-700 rounded-full p-1 transition">
           <X className="h-5 w-5" />
         </button>
       </div>
@@ -148,15 +102,13 @@ export default function SupportChatbot() {
         {messages.map((message) => (
           <div
             key={message.id}
-            className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
-          >
+            className={`flex ${message.sender === "user" ? "justify-end" : "justify-start"}`}>
             <div
-              className={`max-w-[75%] p-3 rounded-lg ${
-                message.sender === 'user'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-white text-gray-900 shadow'
-              }`}
-            >
+              className={`max-w-[75%] p-3 rounded-2xl ${
+                message.sender === "user"
+                  ? "bg-lilac-600 text-white rounded-tr-none"
+                  : "bg-white text-gray-900 shadow rounded-tl-none"
+              }`}>
               <p className="text-sm whitespace-pre-line">{message.text}</p>
               <span className="text-xs opacity-70 mt-1 block">
                 {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -185,8 +137,7 @@ export default function SupportChatbot() {
               <button
                 key={reply}
                 onClick={() => handleQuickReply(reply)}
-                className="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-full transition"
-              >
+                className="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-full transition">
                 {reply}
               </button>
             ))}
@@ -194,23 +145,19 @@ export default function SupportChatbot() {
         </div>
       )}
 
-      <div className="p-4 border-t bg-white rounded-b-lg">
+      <div className="p-4 border-t bg-white">
         <div className="flex space-x-2">
           <input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-            placeholder="Ask about packages, destinations..."
-            className="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-500 text-sm"
-            disabled={isLoading}
+            onKeyPress={(e) => e.key === "Enter" && handleSend()}
+            placeholder="Type your message..."
+            className="flex-1 border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-lilac-500"
           />
           <button
             onClick={handleSend}
-            disabled={isLoading || !input.trim()}
-            className="bg-green-600 text-white p-2 rounded-lg hover:bg-green-700 transition disabled:bg-gray-400 disabled:cursor-not-allowed"
-            aria-label="Send message"
-          >
+            className="bg-lilac-600 text-white p-2 rounded-xl hover:bg-lilac-700 transition">
             <Send className="h-5 w-5" />
           </button>
         </div>

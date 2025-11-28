@@ -1,98 +1,152 @@
-import { Award, Users, Heart, Globe } from 'lucide-react';
+import { Award, Users, Heart, Globe } from "lucide-react";
+import { Reveal } from "../components/Reveal";
+import { CountUp } from "../components/CountUp";
 
 export default function About() {
   return (
-    <div className="min-h-screen bg-gray-50 pt-20 pb-16">
+    <div className="min-h-screen bg-white pt-28 pb-16 font-sans">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">About SmartTravel</h1>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Your trusted partner in creating unforgettable travel experiences across India
-          </p>
-        </div>
+        <Reveal>
+          <div className="text-center mb-16">
+            <h1 className="text-5xl md:text-6xl font-light text-gray-900 mb-6 font-kugile italic">
+              About{" "}
+              <span className="text-lilac/80 bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-600">
+                SmartTravel
+              </span>
+            </h1>
+            <p className="text-xl text-gray-500 max-w-3xl mx-auto leading-relaxed">
+              Your trusted partner in creating unforgettable travel experiences across India
+            </p>
+          </div>
+        </Reveal>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
-          <div className="bg-white p-6 rounded-lg shadow-lg text-center">
-            <Award className="h-12 w-12 text-blue-600 mx-auto mb-4" />
-            <h3 className="text-2xl font-bold text-gray-900 mb-2">15+ Years</h3>
-            <p className="text-gray-600">Industry Experience</p>
-          </div>
-          <div className="bg-white p-6 rounded-lg shadow-lg text-center">
-            <Users className="h-12 w-12 text-blue-600 mx-auto mb-4" />
-            <h3 className="text-2xl font-bold text-gray-900 mb-2">50,000+</h3>
-            <p className="text-gray-600">Happy Travelers</p>
-          </div>
-          <div className="bg-white p-6 rounded-lg shadow-lg text-center">
-            <Globe className="h-12 w-12 text-blue-600 mx-auto mb-4" />
-            <h3 className="text-2xl font-bold text-gray-900 mb-2">200+</h3>
-            <p className="text-gray-600">Destinations</p>
-          </div>
-          <div className="bg-white p-6 rounded-lg shadow-lg text-center">
-            <Heart className="h-12 w-12 text-blue-600 mx-auto mb-4" />
-            <h3 className="text-2xl font-bold text-gray-900 mb-2">4.8/5</h3>
-            <p className="text-gray-600">Customer Rating</p>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-lg p-8 mb-12">
-          <h2 className="text-3xl font-bold text-gray-900 mb-6">Our Story</h2>
-          <div className="space-y-4 text-gray-700 leading-relaxed">
-            <p>
-              Founded in 2009, SmartTravel began with a simple mission: to make travel planning
-              effortless and accessible to everyone. What started as a small team of travel
-              enthusiasts has grown into India's leading smart travel platform, serving thousands
-              of travelers every month.
-            </p>
-            <p>
-              We specialize in creating personalized travel experiences that blend cultural
-              immersion, spiritual journeys, and adventure. From the sacred ghats of Varanasi to
-              the majestic peaks of Ladakh, from heritage walks through Rajasthan to serene
-              backwaters of Kerala, we curate journeys that leave lasting impressions.
-            </p>
-            <p>
-              Our innovative AI-powered itinerary planner revolutionizes travel planning by
-              generating customized trips based on your preferences, budget, and interests. Whether
-              you're seeking a spiritual retreat, an adventure expedition, or a cultural
-              exploration, we have the perfect journey waiting for you.
-            </p>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-lg p-8">
-          <h2 className="text-3xl font-bold text-gray-900 mb-6">Why Choose Us</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                Expert Local Knowledge
+          <Reveal delay={200}>
+            <div className="bg-gray-50 p-8 rounded-3xl hover:shadow-xl transition-all duration-300 text-center group border border-transparent hover:border-gray-100">
+              <Award className="h-12 w-12 text-lilac mx-auto mb-4 group-hover:scale-110 transition-transform duration-300" />
+              <h3 className="text-4xl font-bold text-gray-900 mb-2 font-kugile">
+                <CountUp
+                  end={15}
+                  suffix="+"
+                />
               </h3>
-              <p className="text-gray-700">
-                Our team consists of travel experts with deep knowledge of Indian destinations,
-                ensuring authentic and enriching experiences.
+              <p className="text-gray-500 uppercase tracking-wide text-sm font-medium">
+                Industry Experience
               </p>
             </div>
-            <div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">AI-Powered Planning</h3>
-              <p className="text-gray-700">
-                Our smart planner uses advanced algorithms to create personalized itineraries
-                matching your exact preferences and budget.
+          </Reveal>
+          <Reveal delay={400}>
+            <div className="bg-gray-50 p-8 rounded-3xl hover:shadow-xl transition-all duration-300 text-center group border border-transparent hover:border-gray-100">
+              <Users className="h-12 w-12 text-lilac mx-auto mb-4 group-hover:scale-110 transition-transform duration-300" />
+              <h3 className="text-4xl font-bold text-gray-900 mb-2 font-kugile">
+                <CountUp
+                  end={50000}
+                  suffix="+"
+                />
+              </h3>
+              <p className="text-gray-500 uppercase tracking-wide text-sm font-medium">
+                Happy Travelers
               </p>
             </div>
-            <div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">24/7 Support</h3>
-              <p className="text-gray-700">
-                Round-the-clock customer support ensures you're never alone during your journey,
-                with assistance always just a call away.
+          </Reveal>
+          <Reveal delay={600}>
+            <div className="bg-gray-50 p-8 rounded-3xl hover:shadow-xl transition-all duration-300 text-center group border border-transparent hover:border-gray-100">
+              <Globe className="h-12 w-12 text-lilac mx-auto mb-4 group-hover:scale-110 transition-transform duration-300" />
+              <h3 className="text-4xl font-bold text-gray-900 mb-2 font-kugile">
+                <CountUp
+                  end={200}
+                  suffix="+"
+                />
+              </h3>
+              <p className="text-gray-500 uppercase tracking-wide text-sm font-medium">
+                Destinations
               </p>
             </div>
-            <div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Best Price Guarantee</h3>
-              <p className="text-gray-700">
-                Competitive pricing without compromising on quality, with flexible options for
-                every budget range.
+          </Reveal>
+          <Reveal delay={800}>
+            <div className="bg-gray-50 p-8 rounded-3xl hover:shadow-xl transition-all duration-300 text-center group border border-transparent hover:border-gray-100">
+              <Heart className="h-12 w-12 text-lilac mx-auto mb-4 group-hover:scale-110 transition-transform duration-300" />
+              <h3 className="text-4xl font-bold text-gray-900 mb-2 font-kugile">4.8/5</h3>
+              <p className="text-gray-500 uppercase tracking-wide text-sm font-medium">
+                Customer Rating
+              </p>
+            </div>
+          </Reveal>
+        </div>
+
+        <Reveal>
+          <div className="bg-gray-50 rounded-[2.5rem] p-10 md:p-16 mb-12 shadow-sm">
+            <h2 className="text-4xl md:text-5xl font-light text-gray-900 mb-8 font-kugile italic">
+              Our Story
+            </h2>
+            <div className="space-y-6 text-gray-600 leading-relaxed text-lg">
+              <p>
+                Founded in 2009, SmartTravel began with a simple mission: to make travel planning
+                effortless and accessible to everyone. What started as a small team of travel
+                enthusiasts has grown into India's leading smart travel platform, serving thousands
+                of travelers every month.
+              </p>
+              <p>
+                We specialize in creating personalized travel experiences that blend cultural
+                immersion, spiritual journeys, and adventure. From the sacred ghats of Varanasi to
+                the majestic peaks of Ladakh, from heritage walks through Rajasthan to serene
+                backwaters of Kerala, we curate journeys that leave lasting impressions.
+              </p>
+              <p>
+                Our innovative AI-powered itinerary planner revolutionizes travel planning by
+                generating customized trips based on your preferences, budget, and interests.
+                Whether you're seeking a spiritual retreat, an adventure expedition, or a cultural
+                exploration, we have the perfect journey waiting for you.
               </p>
             </div>
           </div>
-        </div>
+        </Reveal>
+
+        <Reveal>
+          <div className="bg-white rounded-[2.5rem] border border-gray-100 p-10 md:p-16 shadow-lg">
+            <h2 className="text-4xl md:text-5xl font-light text-gray-900 mb-10 font-kugile italic text-center">
+              Why Choose Us
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+              <div className="group">
+                <h3 className="text-2xl font-bold text-gray-900 mb-3 font-kugile group-hover:text-lilac transition-colors">
+                  Expert Local Knowledge
+                </h3>
+                <p className="text-gray-500 leading-relaxed">
+                  Our team consists of travel experts with deep knowledge of Indian destinations,
+                  ensuring authentic and enriching experiences.
+                </p>
+              </div>
+              <div className="group">
+                <h3 className="text-2xl font-bold text-gray-900 mb-3 font-kugile group-hover:text-lilac transition-colors">
+                  AI-Powered Planning
+                </h3>
+                <p className="text-gray-500 leading-relaxed">
+                  Our smart planner uses advanced algorithms to create personalized itineraries
+                  matching your exact preferences and budget.
+                </p>
+              </div>
+              <div className="group">
+                <h3 className="text-2xl font-bold text-gray-900 mb-3 font-kugile group-hover:text-lilac transition-colors">
+                  24/7 Support
+                </h3>
+                <p className="text-gray-500 leading-relaxed">
+                  Round-the-clock customer support ensures you're never alone during your journey,
+                  with assistance always just a call away.
+                </p>
+              </div>
+              <div className="group">
+                <h3 className="text-2xl font-bold text-gray-900 mb-3 font-kugile group-hover:text-lilac transition-colors">
+                  Best Price Guarantee
+                </h3>
+                <p className="text-gray-500 leading-relaxed">
+                  Competitive pricing without compromising on quality, with flexible options for
+                  every budget range.
+                </p>
+              </div>
+            </div>
+          </div>
+        </Reveal>
       </div>
     </div>
   );
