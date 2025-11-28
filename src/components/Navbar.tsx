@@ -62,8 +62,8 @@ export default function Navbar() {
               to="/"
               className="flex items-center space-x-2">
               <div className="flex items-center justify-center space-x-2 mb-4">
-                <Plane className="h-10 w-10 " />
-                <span className="text-2xl font-bold font-kugile text-white">SmartTravel</span>
+                <Plane className="h-10 w-10 text-black bg-clip-text text-transparent bg-gradient-to-r from-green-200 to-green-950 " />
+                <span className="text-2xl font-bold font-kugile text-white">Travellah</span>
               </div>
             </Link>
           </div>
