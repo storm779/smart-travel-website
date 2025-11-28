@@ -183,7 +183,7 @@ export default function PackageMapWidget() {
                           />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-60" />
                           <span className="absolute bottom-2 right-2 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-lg text-xs font-bold text-gray-900 shadow-sm">
-                            ${pkg.price_per_person}
+                            ₹{pkg.price_per_person}
                           </span>
                         </div>
                         <h4 className="font-bold text-gray-900 text-base mb-1 line-clamp-1 font-kugile">
