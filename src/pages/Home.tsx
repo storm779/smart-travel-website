@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import { ArrowRight, MapPin, Plus, Minus, Star, Quote } from "lucide-react";
+import { ArrowRight, MapPin, Plus, Minus, Star, Quote, Sparkles, Building2, Fingerprint, Headphones } from "lucide-react";
 import { motion } from "framer-motion";
 import { supabase, Package as PackageType } from "../lib/supabase";
 import { CountUp } from "../components/CountUp";
@@ -207,17 +207,24 @@ export default function Home() {
 
           <div className="lg:col-span-5 grid grid-cols-2 gap-4">
             {[
-              { icon: "🗺️", title: "AI Itineraries", desc: "3 tiers generated in seconds" },
-              { icon: "🏨", title: "Curated Stays", desc: "Handpicked hotels & homestays" },
-              { icon: "🎯", title: "Personalized", desc: "Matched to your travel style" },
-              { icon: "💬", title: "24/7 Support", desc: "AI chatbot always available" },
+              { icon: Sparkles, title: "AI Itineraries", desc: "3 tiers generated in seconds", accent: "from-lilac-500/20 to-purple-500/20 dark:from-lilac-500/10 dark:to-purple-500/10", iconColor: "text-lilac-600 dark:text-lilac-400", border: "hover:border-lilac-300 dark:hover:border-lilac-600/40", shadow: "hover:shadow-lilac-200/40 dark:hover:shadow-lilac-900/30" },
+              { icon: Building2, title: "Curated Stays", desc: "Handpicked hotels & homestays", accent: "from-amber-500/20 to-orange-500/20 dark:from-amber-500/10 dark:to-orange-500/10", iconColor: "text-amber-600 dark:text-amber-400", border: "hover:border-amber-300 dark:hover:border-amber-600/40", shadow: "hover:shadow-amber-200/40 dark:hover:shadow-amber-900/30" },
+              { icon: Fingerprint, title: "Personalized", desc: "Matched to your travel style", accent: "from-teal-500/20 to-emerald-500/20 dark:from-teal-500/10 dark:to-emerald-500/10", iconColor: "text-teal-600 dark:text-teal-400", border: "hover:border-teal-300 dark:hover:border-teal-600/40", shadow: "hover:shadow-teal-200/40 dark:hover:shadow-teal-900/30" },
+              { icon: Headphones, title: "24/7 Support", desc: "AI chatbot always available", accent: "from-blue-500/20 to-indigo-500/20 dark:from-blue-500/10 dark:to-indigo-500/10", iconColor: "text-blue-600 dark:text-blue-400", border: "hover:border-blue-300 dark:hover:border-blue-600/40", shadow: "hover:shadow-blue-200/40 dark:hover:shadow-blue-900/30" },
             ].map((item, i) => (
               <Reveal key={i} delay={i * 100}>
-                <div className="bg-gray-50 dark:bg-slate-900 border border-gray-100 dark:border-slate-800 rounded-2xl p-6 hover:border-lilac-300 dark:hover:border-lilac-700 hover:shadow-lg transition-all duration-300 group">
-                  <span className="text-2xl mb-3 block">{item.icon}</span>
-                  <h4 className="font-semibold text-gray-900 dark:text-white text-sm mb-1">{item.title}</h4>
+                <motion.div
+                  whileHover={{ y: -4, scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 20 }}
+                  className={`bg-gray-50 dark:bg-slate-900 border border-gray-100 dark:border-slate-800 rounded-2xl p-6 hover:shadow-xl ${item.border} ${item.shadow} transition-[border-color,box-shadow] duration-300 group cursor-default`}
+                >
+                  <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${item.accent} flex items-center justify-center mb-4 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3`}>
+                    <item.icon className={`h-5 w-5 ${item.iconColor} transition-transform duration-300 group-hover:scale-110`} />
+                  </div>
+                  <h4 className="font-semibold text-gray-900 dark:text-white text-sm mb-1 transition-colors duration-300">{item.title}</h4>
                   <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">{item.desc}</p>
-                </div>
+                </motion.div>
               </Reveal>
             ))}
           </div>
