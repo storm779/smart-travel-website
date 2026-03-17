@@ -42,7 +42,10 @@ export default function Contact() {
     <div className="min-h-screen bg-white pt-28 pb-16 font-sans">
       <Helmet>
         <title>Contact Us - Travellah</title>
-        <meta name="description" content="Get in touch with Travellah. Reach out for travel inquiries, bookings, and support." />
+        <meta
+          name="description"
+          content="Get in touch with Travellah. Reach out for travel inquiries, bookings, and support."
+        />
       </Helmet>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <Reveal>
@@ -73,7 +76,7 @@ export default function Contact() {
             <div className="bg-gray-50 p-8 rounded-3xl hover:shadow-xl transition-all duration-300 text-center group border border-transparent hover:border-gray-100 h-full">
               <Mail className="h-12 w-12 text-lilac mx-auto mb-6 group-hover:scale-110 transition-transform duration-300" />
               <h3 className="text-2xl font-bold text-gray-900 mb-4 font-kugile">Email</h3>
-              <p className="text-gray-600 mb-1">info@smarttravel.com</p>
+              <p className="text-gray-600 mb-1">roychoudhary@smarttravel.com</p>
               <p className="text-gray-600">support@smarttravel.com</p>
             </div>
           </Reveal>

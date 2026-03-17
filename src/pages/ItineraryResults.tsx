@@ -27,6 +27,7 @@ import { isGeminiAvailable } from "../services/geminiApi";
 import { Reveal } from "../components/Reveal";
 import { Helmet } from "react-helmet-async";
 import ShareButton from "../components/ShareButton";
+import ItineraryMapView from "../components/ItineraryMapView";
 
 interface DayMeals {
   breakfast?: string;
@@ -449,6 +450,24 @@ export default function ItineraryResults() {
                       <p className="text-xs font-bold text-blue-700 uppercase tracking-wider mb-1">Weather & Packing</p>
                       <p className="text-sm text-blue-900">{selectedItinerary.weatherNote}</p>
                     </div>
+                  </div>
+                )}
+
+                {/* Route Map */}
+                {selectedItinerary.days.length > 0 && (
+                  <div className="mb-8">
+                    <h3 className="text-2xl font-bold font-kugile text-gray-900 mb-4 flex items-center">
+                      <MapPin className="h-6 w-6 mr-2 text-lilac-600" />
+                      Route Map
+                    </h3>
+                    <ItineraryMapView
+                      days={selectedItinerary.days.map((d) => ({
+                        day: d.day,
+                        city: d.city,
+                        title: d.title,
+                        activities: d.activities,
+                      }))}
+                    />
                   </div>
                 )}
 

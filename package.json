@@ -23,6 +23,7 @@
     "react-globe.gl": "^2.37.0",
     "react-helmet-async": "^3.0.0",
     "react-leaflet": "^4.2.1",
+    "react-leaflet-cluster": "^4.0.0",
     "react-router-dom": "^7.9.6",
     "tailwind-merge": "^3.4.0"
   },

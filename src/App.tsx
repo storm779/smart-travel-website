@@ -1,5 +1,5 @@
 import { lazy, Suspense } from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ToastProvider } from "./contexts/ToastContext";
@@ -7,6 +7,7 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import ErrorBoundary from "./components/ErrorBoundary";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
+import FooterMinimal from "./components/FooterMinimal";
 import SupportChatbot from "./components/SupportChatbot";
 import PackageMapWidget from "./components/PackageMapWidget";
 import PageLoader from "./components/PageLoader";
@@ -23,6 +24,12 @@ const BookingConfirmation = lazy(() => import("./pages/BookingConfirmation"));
 const MyBookings = lazy(() => import("./pages/MyBookings"));
 const About = lazy(() => import("./pages/About"));
 const Contact = lazy(() => import("./pages/Contact"));
+const ExploreMap = lazy(() => import("./pages/ExploreMap"));
+
+function AppFooter() {
+  const location = useLocation();
+  return location.pathname === "/" ? <Footer /> : <FooterMinimal />;
+}
 
 function App() {
   return (
@@ -85,10 +92,14 @@ function App() {
                       path="/contact"
                       element={<Contact />}
                     />
+                    <Route
+                      path="/explore-map"
+                      element={<ExploreMap />}
+                    />
                   </Routes>
                 </Suspense>
               </main>
-              <Footer />
+              <AppFooter />
               <SupportChatbot />
               <PackageMapWidget />
             </div>
