@@ -18,24 +18,21 @@ import {
   XCircle,
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
+import { EnhancedActivity } from "../utils/enhancedItineraryGenerator";
 import {
-  calculatePrice,
-  getDurationDays,
-  getDestinationData,
-  getDestinationImages,
-  getHotelName,
-  getTransportDetails,
-  getInclusions,
-  getExclusions,
-} from "../utils/itineraryGenerator";
-import {
-  generateEnhancedActivities,
-  fetchAndCachePlaces,
-  EnhancedActivity,
-} from "../utils/enhancedItineraryGenerator";
-import { Place } from "../services/placesApi";
-import { generateCityAwareItinerary, DayPlan } from "../utils/cityAwareItineraryGenerator";
+  generateItinerariesWithGemini,
+  formatGeminiItineraries,
+} from "../services/geminiItineraryService";
+import { isGeminiAvailable } from "../services/geminiApi";
 import { Reveal } from "../components/Reveal";
+import { Helmet } from "react-helmet-async";
+import ShareButton from "../components/ShareButton";
+
+interface DayMeals {
+  breakfast?: string;
+  lunch?: string;
+  dinner?: string;
+}
 
 interface Itinerary {
   title: string;
@@ -43,6 +40,7 @@ interface Itinerary {
   totalPrice: number;
   pricePerPerson: number;
   hotelName: string;
+  hotelDescription?: string;
   transportDetails: string[];
   inclusions: string[];
   exclusions: string[];
@@ -52,14 +50,18 @@ interface Itinerary {
     city: string;
     title: string;
     shortSummary?: string;
+    travelTip?: string;
+    meals?: DayMeals;
     activities: string[];
-    enhancedActivities?: EnhancedActivity[];
+    enhancedActivities?: (EnhancedActivity & { time?: string; estimatedCost?: string; duration?: string })[];
   }>;
   highlights: string[];
   images: string[];
   destination: string;
   cities: string[];
   attractions: string[];
+  weatherNote?: string;
+  packingTips?: string[];
 }
 
 export default function ItineraryResults() {
@@ -68,8 +70,11 @@ export default function ItineraryResults() {
   const { user } = useAuth();
   const [itineraries, setItineraries] = useState<Itinerary[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingStep, setLoadingStep] = useState(0);
+  const [usingAI, setUsingAI] = useState(false);
   const [selectedItinerary, setSelectedItinerary] = useState<Itinerary | null>(null);
   const [expandedDay, setExpandedDay] = useState<number | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const preferences = location.state?.preferences;
 
   useEffect(() => {
@@ -88,118 +93,32 @@ export default function ItineraryResults() {
   };
 
   const generateItineraries = async () => {
-    const tiers: Array<{
-      type: "economic" | "middle_luxury" | "luxury";
-      title: string;
-      description: string;
-    }> = [
-      {
-        type: "economic",
-        title: "Economic Package",
-        description: "Budget-friendly with essential amenities",
-      },
-      {
-        type: "middle_luxury",
-        title: "Mid-Luxury Package",
-        description: "Balanced comfort and value",
-      },
-      {
-        type: "luxury",
-        title: "Luxury Package",
-        description: "Premium experience with finest services",
-      },
-    ];
+    const stepInterval = setInterval(() => {
+      setLoadingStep((prev) => (prev < 3 ? prev + 1 : prev));
+    }, 2000);
 
-    const days = getDurationDays(preferences.duration);
-    const destData = getDestinationData(preferences.destination, preferences.travelType);
+    setUsingAI(true);
+    setError(null);
 
-    const generatedItineraries = await Promise.all(
-      tiers.map(async (tier) => {
-        const totalPrice = calculatePrice(
-          preferences.destination,
-          preferences.travelType,
-          preferences.duration,
-          tier.type,
-          preferences.accommodation
-        );
+    try {
+      if (!isGeminiAvailable()) {
+        throw new Error("Gemini API key is not configured. Please add VITE_GEMINI_API_KEY to your .env file.");
+      }
 
-        const pricePerPerson = Math.round(totalPrice / (preferences.travelers || 2));
+      const geminiResult = await generateItinerariesWithGemini(preferences);
+      if (!geminiResult) {
+        throw new Error("Failed to generate itineraries. Gemini returned an empty response.");
+      }
 
-        const apiPlacesMap = new Map<string, Place[]>();
-
-        for (const city of destData.cities) {
-          const cityPlaces = await fetchAndCachePlaces(
-            city,
-            preferences.interests || [],
-            preferences.culturalPreferences || [],
-            tier.type
-          );
-          if (cityPlaces.length > 0) {
-            apiPlacesMap.set(city, cityPlaces);
-          }
-        }
-
-        const cityAwareDayPlans = generateCityAwareItinerary(
-          preferences.destination,
-          destData.cities,
-          days,
-          tier.type,
-          preferences.interests || [],
-          apiPlacesMap
-        );
-
-        const dayPlans = cityAwareDayPlans.map((dayPlan) => ({
-          day: dayPlan.day,
-          city: dayPlan.city,
-          title: dayPlan.title,
-          shortSummary: dayPlan.shortSummary,
-          activities: dayPlan.activities.map((act) => {
-            if (act.subtitle) {
-              return `${act.title} - ${act.subtitle}`;
-            }
-            return act.title;
-          }),
-          enhancedActivities: dayPlan.activities.map((act) => ({
-            type: "place" as const,
-            name: act.title,
-            description: act.subtitle,
-            category: act.category,
-          })),
-        }));
-
-        const allPlaces = Array.from(apiPlacesMap.values()).flat();
-        const highlights =
-          allPlaces.length > 0
-            ? allPlaces.slice(0, 6).map((p) => p.name)
-            : destData.attractions.slice(0, 6);
-
-        return {
-          title: `${preferences.destination} - ${tier.title}`,
-          type: tier.type,
-          totalPrice,
-          pricePerPerson,
-          hotelName: getHotelName(
-            preferences.destination,
-            preferences.travelType,
-            tier.type,
-            preferences.accommodation
-          ),
-          transportDetails: getTransportDetails(preferences.travelType, tier.type),
-          inclusions: getInclusions(tier.type, days),
-          exclusions: getExclusions(),
-          duration: `${days} Days / ${days - 1} Nights`,
-          days: dayPlans,
-          highlights,
-          images: getDestinationImages(preferences.destination, preferences.travelType),
-          destination: preferences.destination,
-          cities: destData.cities,
-          attractions: allPlaces.length > 0 ? allPlaces.map((p) => p.name) : destData.attractions,
-        };
-      })
-    );
-
-    setItineraries(generatedItineraries);
-    setLoading(false);
+      const formatted = formatGeminiItineraries(geminiResult, preferences);
+      setItineraries(formatted as Itinerary[]);
+    } catch (err: any) {
+      console.error("Itinerary generation failed:", err);
+      setError(err?.message || "Something went wrong while generating your itinerary. Please try again.");
+    } finally {
+      clearInterval(stepInterval);
+      setLoading(false);
+    }
   };
 
   const handleBookItinerary = (itinerary: Itinerary) => {
@@ -242,13 +161,77 @@ export default function ItineraryResults() {
     return "ECONOMIC";
   };
 
+  if (error) {
+    return (
+      <div className="min-h-screen bg-lilac-50 pt-28 pb-16">
+        <div className="max-w-xl mx-auto px-4 text-center py-20">
+          <div className="bg-white rounded-3xl shadow-xl p-10">
+            <div className="bg-red-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
+              <X className="h-8 w-8 text-red-500" />
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-3 font-kugile">Generation Failed</h2>
+            <p className="text-gray-500 mb-6 text-sm">{error}</p>
+            <div className="flex gap-3 justify-center">
+              <button
+                onClick={() => {
+                  setLoading(true);
+                  setError(null);
+                  setLoadingStep(0);
+                  generateItineraries();
+                }}
+                className="px-6 py-3 bg-lilac-600 hover:bg-lilac-700 text-white rounded-xl font-medium text-sm transition">
+                Try Again
+              </button>
+              <button
+                onClick={() => navigate("/smart-planner")}
+                className="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium text-sm transition">
+                Back to Planner
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const loadingSteps = [
+    { text: "Understanding your preferences...", icon: "🧠" },
+    { text: "Researching destinations & attractions...", icon: "🔍" },
+    { text: "Finding the best hotels & restaurants...", icon: "🏨" },
+    { text: "Crafting your perfect itinerary...", icon: "✨" },
+  ];
+
   if (loading) {
     return (
       <div className="min-h-screen bg-lilac-50 pt-28 pb-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center py-20">
+          <div className="text-center py-20 max-w-md mx-auto">
             <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-lilac-600 mx-auto"></div>
-            <p className="mt-4 text-xl text-gray-600">Crafting your perfect itinerary...</p>
+            {usingAI && (
+              <div className="mt-2 inline-flex items-center gap-1.5 bg-gradient-to-r from-lilac-100 to-purple-100 text-lilac-700 px-4 py-1.5 rounded-full text-sm font-medium">
+                <Sparkles className="h-4 w-4" />
+                Powered by AI
+              </div>
+            )}
+            <div className="mt-8 space-y-4">
+              {loadingSteps.map((step, index) => (
+                <div
+                  key={index}
+                  className={`flex items-center gap-3 px-6 py-3 rounded-xl transition-all duration-500 ${
+                    index <= loadingStep
+                      ? "bg-white shadow-sm text-gray-900"
+                      : "text-gray-400"
+                  }`}>
+                  <span className="text-xl">{step.icon}</span>
+                  <span className={`text-sm font-medium ${index === loadingStep ? "animate-pulse" : ""}`}>
+                    {step.text}
+                  </span>
+                  {index < loadingStep && (
+                    <Check className="h-4 w-4 text-green-500 ml-auto" />
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
@@ -257,6 +240,10 @@ export default function ItineraryResults() {
 
   return (
     <div className="min-h-screen bg-lilac-50 pt-28 pb-16">
+      <Helmet>
+        <title>Your Itineraries - Travellah</title>
+        <meta name="description" content="View your AI-generated personalized travel itineraries across Economic, Mid-Luxury, and Luxury tiers." />
+      </Helmet>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <Reveal>
           <div className="text-center mb-12">
@@ -454,6 +441,17 @@ export default function ItineraryResults() {
                   </div>
                 </div>
 
+                {/* Weather Note */}
+                {selectedItinerary.weatherNote && (
+                  <div className="mb-6 bg-blue-50 border border-blue-100 rounded-2xl p-5 flex items-start gap-3">
+                    <MapPin className="h-5 w-5 text-blue-500 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-xs font-bold text-blue-700 uppercase tracking-wider mb-1">Weather & Packing</p>
+                      <p className="text-sm text-blue-900">{selectedItinerary.weatherNote}</p>
+                    </div>
+                  </div>
+                )}
+
                 <div className="mb-8">
                   <div className="flex items-center justify-between mb-6">
                     <h3 className="text-2xl font-bold font-kugile text-gray-900 flex items-center">
@@ -500,48 +498,95 @@ export default function ItineraryResults() {
                         </button>
 
                         {expandedDay === day.day && (
-                          <div className="p-6 bg-white border-t border-gray-100">
-                            <ul className="space-y-4">
+                          <div className="p-6 bg-white border-t border-gray-100 space-y-5">
+                            {/* Travel Tip */}
+                            {day.travelTip && (
+                              <div className="flex items-start gap-3 bg-amber-50 border border-amber-100 rounded-xl p-4">
+                                <Info className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                                <div>
+                                  <p className="text-xs font-bold text-amber-700 uppercase tracking-wider mb-1">Insider Tip</p>
+                                  <p className="text-sm text-amber-900">{day.travelTip}</p>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Meals */}
+                            {day.meals && (day.meals.breakfast || day.meals.lunch || day.meals.dinner) && (
+                              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                {day.meals.breakfast && (
+                                  <div className="bg-orange-50 rounded-xl p-3 border border-orange-100">
+                                    <p className="text-[10px] font-bold text-orange-600 uppercase tracking-wider mb-1">Breakfast</p>
+                                    <p className="text-xs text-gray-800">{day.meals.breakfast}</p>
+                                  </div>
+                                )}
+                                {day.meals.lunch && (
+                                  <div className="bg-green-50 rounded-xl p-3 border border-green-100">
+                                    <p className="text-[10px] font-bold text-green-600 uppercase tracking-wider mb-1">Lunch</p>
+                                    <p className="text-xs text-gray-800">{day.meals.lunch}</p>
+                                  </div>
+                                )}
+                                {day.meals.dinner && (
+                                  <div className="bg-indigo-50 rounded-xl p-3 border border-indigo-100">
+                                    <p className="text-[10px] font-bold text-indigo-600 uppercase tracking-wider mb-1">Dinner</p>
+                                    <p className="text-xs text-gray-800">{day.meals.dinner}</p>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+
+                            {/* Activities */}
+                            <div className="space-y-3">
                               {day.enhancedActivities && day.enhancedActivities.length > 0
                                 ? day.enhancedActivities.map((activity, aIndex) => (
-                                    <li
+                                    <div
                                       key={aIndex}
-                                      className="flex items-start space-x-3">
-                                      <Check className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
-                                      <div className="flex-1">
-                                        <div className="flex items-center space-x-2 mb-1">
-                                          <span className="text-gray-900 font-medium">
+                                      className="flex items-start gap-3 p-3 rounded-xl hover:bg-gray-50 transition">
+                                      <div className="flex-shrink-0 mt-1">
+                                        <div className="w-8 h-8 bg-lilac-100 text-lilac-700 rounded-lg flex items-center justify-center text-xs font-bold">
+                                          {aIndex + 1}
+                                        </div>
+                                      </div>
+                                      <div className="flex-1 min-w-0">
+                                        <div className="flex items-center flex-wrap gap-2 mb-1">
+                                          <span className="text-gray-900 font-semibold text-sm">
                                             {activity.name}
                                           </span>
                                           {activity.category && (
-                                            <span className="px-2 py-0.5 bg-lilac-100 text-lilac-700 text-xs rounded-full">
+                                            <span className="px-2 py-0.5 bg-lilac-100 text-lilac-700 text-[10px] rounded-full font-medium">
                                               {activity.category}
                                             </span>
                                           )}
-                                          {activity.rating && activity.rating > 5 && (
-                                            <span className="px-2 py-0.5 bg-yellow-100 text-yellow-700 text-xs rounded-full flex items-center">
-                                              <Star className="h-3 w-3 mr-1 fill-current" />
-                                              Popular Spot
-                                            </span>
-                                          )}
                                         </div>
+                                        {activity.time && (
+                                          <p className="text-xs text-lilac-600 font-medium flex items-center gap-1 mb-1">
+                                            <Clock className="h-3 w-3" />
+                                            {activity.time}
+                                            {activity.duration && ` (${activity.duration})`}
+                                          </p>
+                                        )}
                                         {activity.description && (
-                                          <p className="text-sm text-gray-600">
+                                          <p className="text-sm text-gray-600 leading-relaxed">
                                             {activity.description}
                                           </p>
                                         )}
+                                        {activity.estimatedCost && (
+                                          <p className="text-xs text-green-700 font-medium mt-1 flex items-center gap-1">
+                                            <IndianRupee className="h-3 w-3" />
+                                            {activity.estimatedCost}
+                                          </p>
+                                        )}
                                       </div>
-                                    </li>
+                                    </div>
                                   ))
                                 : day.activities.map((activity, aIndex) => (
-                                    <li
+                                    <div
                                       key={aIndex}
-                                      className="flex items-start space-x-3">
+                                      className="flex items-start gap-3 p-2">
                                       <Check className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
-                                      <span className="text-gray-700">{activity}</span>
-                                    </li>
+                                      <span className="text-gray-700 text-sm">{activity}</span>
+                                    </div>
                                   ))}
-                            </ul>
+                            </div>
                           </div>
                         )}
                       </div>
@@ -559,11 +604,12 @@ export default function ItineraryResults() {
                       {selectedItinerary.hotelName}
                     </p>
                     <p className="text-sm text-gray-600">
-                      {selectedItinerary.type === "luxury"
-                        ? "5-Star Luxury Property"
-                        : selectedItinerary.type === "middle_luxury"
-                        ? "4-Star Premium Hotel"
-                        : "Comfortable Budget Hotel"}
+                      {selectedItinerary.hotelDescription ||
+                        (selectedItinerary.type === "luxury"
+                          ? "5-Star Luxury Property"
+                          : selectedItinerary.type === "middle_luxury"
+                          ? "4-Star Premium Hotel"
+                          : "Comfortable Budget Hotel")}
                     </p>
                   </div>
 
@@ -621,12 +667,16 @@ export default function ItineraryResults() {
                   </div>
                 </div>
 
-                <div>
+                <div className="flex gap-3">
                   <button
                     onClick={() => handleBookItinerary(selectedItinerary)}
-                    className="w-full bg-gradient-to-r from-lilac-600 to-purple-600 hover:from-lilac-700 hover:to-purple-700 text-white font-bold py-4 px-8 rounded-xl transition transform hover:scale-105 shadow-lg">
+                    className="flex-1 bg-gradient-to-r from-lilac-600 to-purple-600 hover:from-lilac-700 hover:to-purple-700 text-white font-bold py-4 px-8 rounded-xl transition transform hover:scale-105 shadow-lg">
                     Book This Package
                   </button>
+                  <ShareButton
+                    title={`${selectedItinerary.destination} - ${selectedItinerary.duration}`}
+                    text={`Check out this ${getTierLabel(selectedItinerary.type)} travel itinerary for ${selectedItinerary.destination}!`}
+                  />
                 </div>
               </div>
             </div>

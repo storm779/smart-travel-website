@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import { Sparkles, ArrowRight, MapPin, ChevronDown, Plus, Minus } from "lucide-react";
 import { supabase, Package as PackageType } from "../lib/supabase";
 import { useAuth } from "../contexts/AuthContext";
@@ -80,6 +81,10 @@ export default function Home() {
 
   return (
     <div className="min-h-screen font-sans text-gray-800 bg-white">
+      <Helmet>
+        <title>Travellah - Smart Travel & Cultural Tourism Platform</title>
+        <meta name="description" content="Plan your perfect trip with AI-powered itineraries. Explore curated travel packages across India and worldwide for cultural, religious, adventure, and luxury travel." />
+      </Helmet>
       {/* Hero Section */}
       <div className="p-3 md:p-1">
         <section className="relative h-[calc(100vh-0.5rem)] w-full overflow-hidden rounded-[0.5rem]">
@@ -196,6 +201,7 @@ export default function Home() {
               <img
                 src="https://images.pexels.com/photos/1659438/pexels-photo-1659438.jpeg"
                 alt="Comprehensive Travel Support"
+                loading="lazy"
                 className="w-full h-full object-cover transition duration-700 group-hover:scale-110"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-10 transition-opacity duration-300">
@@ -212,6 +218,7 @@ export default function Home() {
                 <img
                   src="https://images.pexels.com/photos/1371360/pexels-photo-1371360.jpeg"
                   alt="Expert Travel Advice"
+                  loading="lazy"
                   className="w-full h-full object-cover transition duration-700 group-hover:scale-110"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-10">
@@ -227,6 +234,7 @@ export default function Home() {
                 <img
                   src="https://images.pexels.com/photos/2166553/pexels-photo-2166553.jpeg"
                   alt="Diverse Destinations"
+                  loading="lazy"
                   className="w-full h-full object-cover transition duration-700 group-hover:scale-110"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-10">
@@ -250,14 +258,17 @@ export default function Home() {
             <img
               src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/69/Airbnb_Logo_B%C3%A9lo.svg/512px-Airbnb_Logo_B%C3%A9lo.svg.png"
               alt="Airbnb"
+              loading="lazy"
               className="h-12 object-contain hover:scale-110 transition-transform duration-300 cursor-pointer"
             />
             <img
               src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/be/Booking.com_logo.svg/512px-Booking.com_logo.svg.png"
               alt="Booking.com"
+              loading="lazy"
               className="h-10 object-contain hover:scale-110 transition-transform duration-300 cursor-pointer"
             />
             <img
+              loading="lazy"
               src="https://promos.makemytrip.com/Growth/Images/3x/mmt_dt_header_icon_3x.png"
               alt="MakeMyTrip"
               className="h-12 object-contain hover:scale-110 transition-transform duration-300 cursor-pointer"
@@ -296,6 +307,7 @@ export default function Home() {
                   <img
                     src={pkg.images[0]}
                     alt={pkg.title}
+                    loading="lazy"
                     className="w-full h-full object-cover transition duration-1000 group-hover:scale-110"
                   />
                   <div className="absolute top-6 left-6 bg-white/20 backdrop-blur-md px-5 py-2 rounded-full text-white text-sm font-medium border border-white/30 shadow-sm">

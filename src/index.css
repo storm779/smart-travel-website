@@ -3,6 +3,86 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  html {
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+}
+
+/*
+  Dark mode: only override page-level backgrounds and main text.
+  Scoped to direct layout containers — NOT every utility class globally,
+  which would break intentionally-dark elements like buttons and badges.
+*/
+html.dark body {
+  background-color: #0f172a;
+  color: #e2e8f0;
+}
+
+/* Page-level background containers */
+html.dark main > div > div.bg-white,
+html.dark main > div.bg-white,
+html.dark .min-h-screen.bg-white {
+  background-color: #0f172a !important;
+}
+
+html.dark main > div > div.bg-lilac-50,
+html.dark main > div.bg-lilac-50,
+html.dark .min-h-screen.bg-lilac-50 {
+  background-color: #0f172a !important;
+}
+
+/* Cards and content panels */
+html.dark .rounded-3xl.bg-white,
+html.dark .rounded-\[2\.5rem\].bg-white,
+html.dark .rounded-\[2rem\].bg-white,
+html.dark .rounded-2xl.bg-white,
+html.dark .rounded-xl.bg-white {
+  background-color: #1e293b !important;
+}
+
+/* Section backgrounds */
+html.dark section.bg-white,
+html.dark section > div.bg-white {
+  background-color: #0f172a !important;
+}
+
+html.dark section.bg-gray-50,
+html.dark .bg-gray-50.p-2,
+html.dark .bg-gray-50.p-6,
+html.dark .bg-gray-50.rounded-3xl {
+  background-color: #1e293b !important;
+}
+
+/* Footer */
+html.dark footer {
+  background-color: #0f172a !important;
+}
+
+/* Form inputs */
+html.dark input:not([type="checkbox"]):not([type="radio"]),
+html.dark select,
+html.dark textarea {
+  background-color: #1e293b !important;
+  color: #e2e8f0 !important;
+  border-color: #334155 !important;
+}
+
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+  color: #64748b !important;
+}
+
+/* Filter panels */
+html.dark .animate-fade-in.bg-white {
+  background-color: #1e293b !important;
+}
+
+/* Navbar text — only override on non-home pages where text is dark */
+html.dark nav .text-gray-900 {
+  color: #e2e8f0 !important;
+}
+
 @layer utilities {
   .animate-fade-in {
     animation: fadeIn 0.5s ease-in-out;

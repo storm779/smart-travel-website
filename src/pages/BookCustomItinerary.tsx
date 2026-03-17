@@ -4,11 +4,13 @@ import { Calendar, Users, MapPin, CreditCard, ArrowLeft } from "lucide-react";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "../contexts/AuthContext";
 import { Reveal } from "../components/Reveal";
+import { useToast } from "../contexts/ToastContext";
 
 export default function BookCustomItinerary() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { showToast } = useToast();
   const itinerary = location.state?.itinerary;
   const preferences = location.state?.preferences;
   const [loading, setLoading] = useState(false);
@@ -93,7 +95,7 @@ export default function BookCustomItinerary() {
     setLoading(false);
 
     if (error) {
-      alert("Error creating booking. Please try again.");
+      showToast("Error creating booking. Please try again.", "error");
       console.error(error);
     } else {
       navigate("/booking-confirmation", { state: { bookingReference } });

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Sparkles, ArrowRight, ArrowLeft, Home, Globe } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Reveal } from "../components/Reveal";
+import { Helmet } from "react-helmet-async";
 
 interface Preferences {
   travelType: "domestic" | "international" | "";
@@ -173,6 +174,10 @@ export default function SmartPlanner() {
 
   return (
     <div className="min-h-screen bg-gray-50 pt-28 pb-16 transition-colors duration-200">
+      <Helmet>
+        <title>AI Smart Planner - Travellah</title>
+        <meta name="description" content="Create personalized AI-powered travel itineraries. Tell us your preferences and get 3 custom itinerary options." />
+      </Helmet>
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
         <Reveal>
           <div className="mb-8 text-center">

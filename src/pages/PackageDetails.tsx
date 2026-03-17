@@ -87,6 +87,7 @@ export default function PackageDetails() {
                   <img
                     src={pkg.images[selectedImage]}
                     alt={pkg.title}
+                    loading="lazy"
                     className="w-full h-96 object-cover rounded-3xl"
                   />
                 </div>

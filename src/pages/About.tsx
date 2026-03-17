@@ -1,10 +1,15 @@
 import { Award, Users, Heart, Globe } from "lucide-react";
 import { Reveal } from "../components/Reveal";
 import { CountUp } from "../components/CountUp";
+import { Helmet } from "react-helmet-async";
 
 export default function About() {
   return (
     <div className="min-h-screen bg-white pt-28 pb-16 font-sans">
+      <Helmet>
+        <title>About Us - Travellah</title>
+        <meta name="description" content="Learn about Travellah - your trusted travel partner for cultural, religious, and adventure travel across India and worldwide." />
+      </Helmet>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <Reveal>
           <div className="text-center mb-16">

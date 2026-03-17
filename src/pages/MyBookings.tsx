@@ -13,6 +13,7 @@ import {
 import { supabase } from "../lib/supabase";
 import { useAuth } from "../contexts/AuthContext";
 import { Reveal } from "../components/Reveal";
+import { Helmet } from "react-helmet-async";
 
 interface Booking {
   id: string;
@@ -134,6 +135,10 @@ export default function MyBookings() {
 
   return (
     <div className="min-h-screen bg-gray-50 pt-28 pb-16">
+      <Helmet>
+        <title>My Bookings - Travellah</title>
+        <meta name="description" content="View and manage your travel bookings." />
+      </Helmet>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <Reveal>
           <div className="mb-8">

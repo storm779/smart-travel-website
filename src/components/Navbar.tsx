@@ -1,16 +1,28 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Menu, X, User, LogOut, Plane } from "lucide-react";
+import { Menu, X, User, LogOut, Plane, Sun, Moon, ChevronDown } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { supabase } from "../lib/supabase";
+import { useTheme } from "../contexts/ThemeContext";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const { user, signOut, loading: authLoading } = useAuth();
   const [userName, setUserName] = useState<string>("");
+  const [showUserMenu, setShowUserMenu] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const { isDark, toggleTheme } = useTheme();
   const isHome = location.pathname === "/";
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   useEffect(() => {
     if (!authLoading && user) {
@@ -38,165 +50,199 @@ export default function Navbar() {
   };
 
   const handleSignOut = async () => {
+    setShowUserMenu(false);
     await signOut();
     navigate("/");
   };
 
-  const textColorClass = isHome ? "text-white" : "text-gray-900";
-  const hoverClass = isHome ? "hover:scale-105" : "hover:scale-110";
-  const buttonBorderClass = isHome ? "border-white" : "border-gray-900";
-  const buttonHoverClass = isHome
-    ? "hover:bg-white hover:text-gray-900"
-    : "hover:bg-gray-900 hover:text-white";
+  const navBg = scrolled
+    ? "bg-white/90 backdrop-blur-xl shadow-sm border-b border-gray-100/50"
+    : isHome
+    ? "bg-transparent"
+    : "bg-white/80 backdrop-blur-xl";
 
-  const navClass = "absolute w-full top-0 z-50 bg-transparent pt-6";
+  const textColor = scrolled || !isHome ? "text-gray-800" : "text-white";
+  const logoColor = scrolled || !isHome ? "text-gray-900" : "text-white";
+  const hoverColor = scrolled || !isHome ? "hover:text-lilac-600" : "hover:text-white/70";
 
-  const linkClass = `${textColorClass} ${hoverClass} uppercase tracking-widest text-xs font-medium transition-colors duration-300`;
+  const navLinks = [
+    { to: "/", label: "Home" },
+    { to: "/about", label: "About" },
+    { to: "/smart-planner", label: "AI Planner" },
+    { to: "/packages", label: "Packages" },
+    { to: "/contact", label: "Contact" },
+  ];
+
+  const isActive = (path: string) => location.pathname === path;
 
   return (
-    <nav className={navClass}>
+    <nav className={`fixed w-full top-0 z-50 transition-all duration-500 ${navBg}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-20 items-center">
-          <div className="flex items-center">
-            <Link
-              to="/"
-              className="flex items-center space-x-2">
-              <div className="flex items-center justify-center space-x-2 mb-4">
-                <Plane className="h-10 w-10 text-black bg-clip-text text-transparent bg-gradient-to-r from-green-200 to-green-950 " />
-                <span className="text-2xl font-bold font-kugile text-white">Travellah</span>
-              </div>
-            </Link>
+        <div className="flex justify-between h-16 items-center">
+          {/* Logo */}
+          <Link to="/" className="flex items-center space-x-2 group">
+            <Plane className={`h-7 w-7 ${logoColor} transition-transform duration-300 group-hover:rotate-12`} />
+            <span className={`text-xl font-bold font-kugile ${logoColor} transition-colors`}>
+              Travellah
+            </span>
+          </Link>
+
+          {/* Center Nav Links */}
+          <div className="hidden md:flex items-center space-x-1">
+            {navLinks.map((link) => (
+              <Link
+                key={link.to}
+                to={link.to}
+                className={`px-4 py-2 rounded-full text-[13px] font-medium tracking-wide transition-all duration-300 ${
+                  isActive(link.to)
+                    ? scrolled || !isHome
+                      ? "bg-lilac-50 text-lilac-700"
+                      : "bg-white/15 text-white"
+                    : `${textColor} ${hoverColor}`
+                }`}>
+                {link.label}
+              </Link>
+            ))}
           </div>
 
-          <div className="hidden md:flex items-center space-x-8">
-            <Link
-              to="/"
-              className={linkClass}>
-              Home
-            </Link>
-            <Link
-              to="/about"
-              className={linkClass}>
-              About us
-            </Link>
-            <Link
-              to="/smart-planner"
-              className={linkClass}>
-              Our services
-            </Link>
-            <Link
-              to="/packages"
-              className={linkClass}>
-              Travel Packages
-            </Link>
-            <Link
-              to="/contact"
-              className={linkClass}>
-              Contact Us
-            </Link>
+          {/* Right Side */}
+          <div className="hidden md:flex items-center space-x-2">
+            {/* Theme Toggle */}
+            <button
+              onClick={toggleTheme}
+              className={`p-2 rounded-full transition-all duration-300 ${
+                scrolled || !isHome
+                  ? "text-gray-500 hover:text-gray-800 hover:bg-gray-100"
+                  : "text-white/70 hover:text-white hover:bg-white/10"
+              }`}
+              title={isDark ? "Light mode" : "Dark mode"}>
+              {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            </button>
 
             {user ? (
-              <div className="flex items-center space-x-6">
-                <Link
-                  to="/my-bookings"
-                  className={linkClass}>
-                  My Bookings
-                </Link>
-                {userName && (
-                  <span
-                    className={`font-semibold uppercase tracking-wider text-xs ${textColorClass}`}>
-                    Hi, {userName}
-                  </span>
-                )}
+              <div className="relative">
                 <button
-                  onClick={handleSignOut}
-                  className={`${linkClass} flex items-center space-x-1`}>
-                  <LogOut className="h-4 w-4" />
-                  <span>Sign Out</span>
+                  onClick={() => setShowUserMenu(!showUserMenu)}
+                  className={`flex items-center space-x-2 px-3 py-1.5 rounded-full transition-all duration-300 ${
+                    scrolled || !isHome
+                      ? "hover:bg-gray-100 text-gray-700"
+                      : "hover:bg-white/10 text-white"
+                  }`}>
+                  <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${
+                    scrolled || !isHome
+                      ? "bg-lilac-100 text-lilac-700"
+                      : "bg-white/20 text-white"
+                  }`}>
+                    {userName.charAt(0).toUpperCase()}
+                  </div>
+                  <span className="text-[13px] font-medium max-w-[100px] truncate">
+                    {userName}
+                  </span>
+                  <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-200 ${showUserMenu ? "rotate-180" : ""}`} />
                 </button>
+
+                {/* User Dropdown */}
+                {showUserMenu && (
+                  <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-2xl shadow-xl border border-gray-100 py-2 animate-fade-in">
+                    <div className="px-4 py-2 border-b border-gray-50">
+                      <p className="text-sm font-semibold text-gray-900 truncate">{userName}</p>
+                      <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                    </div>
+                    <Link
+                      to="/my-bookings"
+                      onClick={() => setShowUserMenu(false)}
+                      className="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition">
+                      My Bookings
+                    </Link>
+                    <button
+                      onClick={handleSignOut}
+                      className="flex items-center w-full px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition">
+                      <LogOut className="h-4 w-4 mr-2" />
+                      Sign Out
+                    </button>
+                  </div>
+                )}
               </div>
             ) : (
               <Link
                 to="/login"
-                className={`flex items-center space-x-2 px-6 py-2 rounded-full border ${buttonBorderClass} ${textColorClass} ${buttonHoverClass} transition-all duration-300 uppercase tracking-wider text-xs font-medium`}>
-                <User className="h-3 w-3" />
+                className={`flex items-center space-x-1.5 px-5 py-2 rounded-full text-[13px] font-medium transition-all duration-300 ${
+                  scrolled || !isHome
+                    ? "bg-gray-900 text-white hover:bg-lilac-600"
+                    : "bg-white/15 backdrop-blur-sm text-white border border-white/30 hover:bg-white/25"
+                }`}>
+                <User className="h-3.5 w-3.5" />
                 <span>Login</span>
               </Link>
             )}
           </div>
 
-          <div className="md:hidden flex items-center">
+          {/* Mobile Menu Button */}
+          <div className="md:hidden flex items-center space-x-2">
+            <button
+              onClick={toggleTheme}
+              className={`p-2 rounded-full ${textColor}`}>
+              {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            </button>
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className={`${textColorClass} hover:opacity-80`}>
-              {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+              className={`p-2 rounded-full ${textColor} hover:opacity-80`}>
+              {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
           </div>
         </div>
       </div>
 
+      {/* Mobile Menu */}
       {isOpen && (
-        <div className="md:hidden bg-gray-900 border-t border-gray-800 text-white absolute w-full left-0 top-full">
-          <div className="px-2 pt-2 pb-3 space-y-1">
-            <Link
-              to="/"
-              className="block px-3 py-2 text-white hover:bg-gray-800 rounded-md uppercase tracking-wider text-xs"
-              onClick={() => setIsOpen(false)}>
-              Home
-            </Link>
-            <Link
-              to="/packages"
-              className="block px-3 py-2 text-white hover:bg-gray-800 rounded-md uppercase tracking-wider text-xs"
-              onClick={() => setIsOpen(false)}>
-              Packages
-            </Link>
-            <Link
-              to="/smart-planner"
-              className="block px-3 py-2 text-white hover:bg-gray-800 rounded-md uppercase tracking-wider text-xs"
-              onClick={() => setIsOpen(false)}>
-              Smart Planner
-            </Link>
-            <Link
-              to="/about"
-              className="block px-3 py-2 text-white hover:bg-gray-800 rounded-md uppercase tracking-wider text-xs"
-              onClick={() => setIsOpen(false)}>
-              About
-            </Link>
-            <Link
-              to="/contact"
-              className="block px-3 py-2 text-white hover:bg-gray-800 rounded-md uppercase tracking-wider text-xs"
-              onClick={() => setIsOpen(false)}>
-              Contact
-            </Link>
+        <div className="md:hidden bg-white border-t border-gray-100 shadow-xl animate-fade-in">
+          <div className="px-4 py-3 space-y-1">
+            {navLinks.map((link) => (
+              <Link
+                key={link.to}
+                to={link.to}
+                className={`block px-4 py-3 rounded-xl text-sm font-medium transition ${
+                  isActive(link.to)
+                    ? "bg-lilac-50 text-lilac-700"
+                    : "text-gray-700 hover:bg-gray-50"
+                }`}
+                onClick={() => setIsOpen(false)}>
+                {link.label}
+              </Link>
+            ))}
+
             {user ? (
               <>
-                <Link
-                  to="/my-bookings"
-                  className="block px-3 py-2 text-white hover:bg-gray-800 rounded-md uppercase tracking-wider text-xs"
-                  onClick={() => setIsOpen(false)}>
-                  My Bookings
-                </Link>
-                {userName && (
-                  <div className="px-3 py-2 text-white font-semibold uppercase tracking-wider text-xs">
-                    Hi, {userName}
+                <div className="border-t border-gray-100 mt-2 pt-2">
+                  <div className="px-4 py-2">
+                    <p className="text-sm font-semibold text-gray-900">{userName}</p>
+                    <p className="text-xs text-gray-500">{user.email}</p>
                   </div>
-                )}
-                <button
-                  onClick={() => {
-                    handleSignOut();
-                    setIsOpen(false);
-                  }}
-                  className="block w-full text-left px-3 py-2 text-white hover:bg-gray-800 rounded-md uppercase tracking-wider text-xs">
-                  Sign Out
-                </button>
+                  <Link
+                    to="/my-bookings"
+                    className="block px-4 py-3 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50"
+                    onClick={() => setIsOpen(false)}>
+                    My Bookings
+                  </Link>
+                  <button
+                    onClick={() => {
+                      handleSignOut();
+                      setIsOpen(false);
+                    }}
+                    className="block w-full text-left px-4 py-3 rounded-xl text-sm font-medium text-red-600 hover:bg-red-50">
+                    Sign Out
+                  </button>
+                </div>
               </>
             ) : (
-              <Link
-                to="/login"
-                className="block px-3 py-2 bg-white text-gray-900 rounded-md text-center uppercase tracking-wider text-xs font-medium mt-4"
-                onClick={() => setIsOpen(false)}>
-                Login
-              </Link>
+              <div className="border-t border-gray-100 mt-2 pt-3 px-2">
+                <Link
+                  to="/login"
+                  className="block w-full text-center px-4 py-3 bg-gray-900 text-white rounded-xl text-sm font-medium hover:bg-lilac-600 transition"
+                  onClick={() => setIsOpen(false)}>
+                  Login / Sign Up
+                </Link>
+              </div>
             )}
           </div>
         </div>

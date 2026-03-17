@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Mail, Phone, MapPin, Clock, Send, CheckCircle, AlertCircle } from "lucide-react";
 import { Reveal } from "../components/Reveal";
 import { supabase } from "../lib/supabase";
+import { Helmet } from "react-helmet-async";
 
 export default function Contact() {
   const [formData, setFormData] = useState({
@@ -39,6 +40,10 @@ export default function Contact() {
 
   return (
     <div className="min-h-screen bg-white pt-28 pb-16 font-sans">
+      <Helmet>
+        <title>Contact Us - Travellah</title>
+        <meta name="description" content="Get in touch with Travellah. Reach out for travel inquiries, bookings, and support." />
+      </Helmet>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <Reveal>
           <div className="text-center mb-16">

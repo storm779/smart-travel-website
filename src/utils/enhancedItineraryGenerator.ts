@@ -258,6 +258,12 @@ export const fetchAndCachePlaces = async (
   tier: 'economic' | 'middle_luxury' | 'luxury'
 ): Promise<Place[]> => {
   try {
+    // Skip API call if OpenTripMap key is not configured
+    const apiKey = import.meta.env.VITE_OPENTRIPMAP_API_KEY;
+    if (!apiKey) {
+      return [];
+    }
+
     let places = await fetchTouristPlaces(destination, interests, culturalPrefs);
 
     if (places.length === 0) {

@@ -1,8 +1,13 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
+import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
-import { Search, Filter, MapPin, Calendar, Star, ArrowRight, Globe, Home } from "lucide-react";
+import { Search, Filter, MapPin, Calendar, Star, ArrowRight, Globe, Home, Sparkles, X, Mic, MicOff } from "lucide-react";
 import { supabase, Package as PackageType } from "../lib/supabase";
 import { Reveal } from "../components/Reveal";
+import { parseSearchQuery, formatParsedFilters } from "../services/geminiSearchService";
+import { isGeminiAvailable } from "../services/geminiApi";
+import { PackageCardSkeleton } from "../components/Skeleton";
+import { useSpeechToText } from "../hooks/useSpeechToText";
 
 export default function Packages() {
   const [packages, setPackages] = useState<PackageType[]>([]);
@@ -21,6 +26,17 @@ export default function Packages() {
     maxDuration: "",
   });
   const [showFilters, setShowFilters] = useState(false);
+  const [smartSearchChips, setSmartSearchChips] = useState<string[]>([]);
+  const [isSmartSearching, setIsSmartSearching] = useState(false);
+  const [smartFilters, setSmartFilters] = useState<{
+    theme?: string;
+    maxPrice?: number;
+    minPrice?: number;
+    minDuration?: number;
+    maxDuration?: number;
+    category?: "domestic" | "international";
+  } | null>(null);
+  const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const themes = ["adventure", "honeymoon", "family", "cultural", "religious", "beach", "heritage"];
 
@@ -30,7 +46,54 @@ export default function Packages() {
 
   useEffect(() => {
     applyFilters();
-  }, [packages, searchTerm, filters, selectedCategory]);
+  }, [packages, searchTerm, filters, selectedCategory, smartFilters]);
+
+  const handleSmartSearch = useCallback(
+    (query: string) => {
+      if (searchDebounceRef.current) {
+        clearTimeout(searchDebounceRef.current);
+      }
+      searchDebounceRef.current = setTimeout(async () => {
+        if (!query.trim()) {
+          setSmartSearchChips([]);
+          return;
+        }
+        setIsSmartSearching(true);
+        const parsed = await parseSearchQuery(query);
+        setIsSmartSearching(false);
+        if (parsed && Object.keys(parsed).length > 0) {
+          setSmartSearchChips(formatParsedFilters(parsed));
+          setSmartFilters(parsed);
+          if (parsed.category) {
+            setSelectedCategory(parsed.category);
+          }
+        } else {
+          setSmartSearchChips([]);
+          setSmartFilters(null);
+        }
+      }, 600);
+    },
+    []
+  );
+
+  const handleSearchChange = useCallback((value: string) => {
+    setSearchTerm(value);
+    if (!value.trim()) {
+      setSmartFilters(null);
+      setSmartSearchChips([]);
+      return;
+    }
+    if (isGeminiAvailable()) {
+      handleSmartSearch(value);
+    }
+  }, [handleSmartSearch]);
+
+  const onSpeechResult = useCallback((text: string) => {
+    handleSearchChange(text);
+  }, [handleSearchChange]);
+
+  const { isListening, isSupported: isSpeechSupported, startListening, stopListening, isProcessing: isSpeechProcessing } =
+    useSpeechToText(onSpeechResult);
 
   const loadPackages = async () => {
     const { data } = await supabase
@@ -52,6 +115,28 @@ export default function Packages() {
       filtered = filtered.filter((pkg) => pkg.category === selectedCategory);
     }
 
+    // Smart search mode: use AI-parsed filters directly
+    if (smartFilters) {
+      if (smartFilters.theme) {
+        filtered = filtered.filter((pkg) => pkg.theme.toLowerCase() === smartFilters.theme!.toLowerCase());
+      }
+      if (smartFilters.maxPrice) {
+        filtered = filtered.filter((pkg) => pkg.price_per_person <= smartFilters.maxPrice!);
+      }
+      if (smartFilters.minPrice) {
+        filtered = filtered.filter((pkg) => pkg.price_per_person >= smartFilters.minPrice!);
+      }
+      if (smartFilters.minDuration) {
+        filtered = filtered.filter((pkg) => pkg.duration_days >= smartFilters.minDuration!);
+      }
+      if (smartFilters.maxDuration) {
+        filtered = filtered.filter((pkg) => pkg.duration_days <= smartFilters.maxDuration!);
+      }
+      setFilteredPackages(filtered);
+      return;
+    }
+
+    // Regular text search mode
     if (searchTerm) {
       filtered = filtered.filter(
         (pkg) =>
@@ -62,11 +147,11 @@ export default function Packages() {
     }
 
     if (filters.destination) {
-      filtered = filtered.filter((pkg) => pkg.destination === filters.destination);
+      filtered = filtered.filter((pkg) => pkg.destination.toLowerCase() === filters.destination.toLowerCase());
     }
 
     if (filters.theme) {
-      filtered = filtered.filter((pkg) => pkg.theme === filters.theme);
+      filtered = filtered.filter((pkg) => pkg.theme.toLowerCase() === filters.theme.toLowerCase());
     }
 
     if (filters.minPrice) {
@@ -99,6 +184,8 @@ export default function Packages() {
     });
     setSearchTerm("");
     setSelectedCategory("all");
+    setSmartFilters(null);
+    setSmartSearchChips([]);
   };
 
   const domesticPackages = filteredPackages.filter((pkg) => pkg.category === "domestic");
@@ -115,6 +202,7 @@ export default function Packages() {
         <img
           src={imageUrl}
           alt={pkg.title}
+          loading="lazy"
           className="w-full h-full object-cover transition duration-1000 group-hover:scale-110 mt-10"
         />
         <div className="absolute top-6 left-6 bg-white/20 backdrop-blur-md px-5 py-2 rounded-full text-white text-sm font-medium border border-white/30 shadow-sm flex items-center gap-2">
@@ -162,6 +250,10 @@ export default function Packages() {
 
   return (
     <div className="min-h-screen bg-white pt-28 pb-16 font-sans">
+      <Helmet>
+        <title>Travel Packages - Travellah</title>
+        <meta name="description" content="Browse curated domestic and international travel packages. Adventure, honeymoon, family, cultural, religious tours and more." />
+      </Helmet>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <Reveal>
           <div className="mb-12 text-center">
@@ -180,15 +272,30 @@ export default function Packages() {
         <Reveal delay={200}>
           <div className="mb-12 bg-gray-50 p-2 rounded-[2rem] border border-gray-100 shadow-sm">
             <div className="flex flex-col md:flex-row gap-2">
-              <div className="relative flex-1">
+              <div className="relative flex-1 flex items-center">
                 <Search className="absolute left-6 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
                 <input
                   type="text"
-                  placeholder="Search packages, destinations..."
+                  placeholder={isGeminiAvailable() ? 'Try "beach vacation under 50k for 5 days"' : "Search packages, destinations..."}
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-14 pr-6 py-4 bg-white border-none rounded-[1.5rem] focus:outline-none focus:ring-2 focus:ring-lilac/20 text-gray-700 placeholder-gray-400 shadow-sm"
+                  onChange={(e) => handleSearchChange(e.target.value)}
+                  className={`w-full pl-14 ${isSpeechSupported ? "pr-14" : "pr-6"} py-4 bg-white border-none rounded-[1.5rem] focus:outline-none focus:ring-2 focus:ring-lilac/20 text-gray-700 placeholder-gray-400 shadow-sm`}
                 />
+                {isSpeechSupported && (
+                  <button
+                    onClick={isListening ? stopListening : startListening}
+                    disabled={isSpeechProcessing}
+                    className={`absolute right-4 p-2 rounded-full transition-all duration-300 ${
+                      isListening
+                        ? "bg-red-500 text-white animate-pulse"
+                        : isSpeechProcessing
+                        ? "bg-lilac-100 text-lilac-600 animate-pulse"
+                        : "text-gray-400 hover:text-lilac-600 hover:bg-lilac-50"
+                    }`}
+                    title={isListening ? "Stop recording" : isSpeechProcessing ? "Transcribing..." : "Search by voice"}>
+                    {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+                  </button>
+                )}
               </div>
               <button
                 onClick={() => setShowFilters(!showFilters)}
@@ -201,6 +308,39 @@ export default function Packages() {
                 <span className="font-medium">Filters</span>
               </button>
             </div>
+
+            {/* Smart Search Chips */}
+            {(smartSearchChips.length > 0 || isSmartSearching) && (
+              <div className="px-6 pt-3 pb-1 flex items-center gap-2 flex-wrap">
+                {isSmartSearching ? (
+                  <span className="text-xs text-lilac-600 flex items-center gap-1.5">
+                    <Sparkles className="h-3 w-3 animate-pulse" />
+                    Understanding your search...
+                  </span>
+                ) : (
+                  <>
+                    <span className="text-xs text-gray-500 flex items-center gap-1">
+                      <Sparkles className="h-3 w-3 text-lilac-500" />
+                      Understood as:
+                    </span>
+                    {smartSearchChips.map((chip) => (
+                      <span
+                        key={chip}
+                        className="inline-flex items-center gap-1 text-xs bg-lilac-100 text-lilac-700 px-3 py-1 rounded-full font-medium">
+                        {chip}
+                        <button
+                          onClick={() => {
+                            setSmartSearchChips((prev) => prev.filter((c) => c !== chip));
+                          }}
+                          className="hover:text-lilac-900">
+                          <X className="h-3 w-3" />
+                        </button>
+                      </span>
+                    ))}
+                  </>
+                )}
+              </div>
+            )}
 
             {showFilters && (
               <div className="p-6 mt-2 bg-white rounded-[1.5rem] shadow-inner animate-fade-in">
@@ -325,11 +465,7 @@ export default function Packages() {
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {[1, 2, 3, 4, 5, 6].map((i) => (
-              <div
-                key={i}
-                className="animate-pulse">
-                <div className="bg-gray-200 h-[500px] rounded-3xl"></div>
-              </div>
+              <PackageCardSkeleton key={i} />
             ))}
           </div>
         ) : filteredPackages.length === 0 ? (

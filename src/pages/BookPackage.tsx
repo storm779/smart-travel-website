@@ -4,11 +4,13 @@ import { Calendar, Users, MapPin, CreditCard, Check } from "lucide-react";
 import { supabase, Package as PackageType } from "../lib/supabase";
 import { useAuth } from "../contexts/AuthContext";
 import { Reveal } from "../components/Reveal";
+import { useToast } from "../contexts/ToastContext";
 
 export default function BookPackage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { showToast } = useToast();
   const [pkg, setPkg] = useState<PackageType | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -92,7 +94,7 @@ export default function BookPackage() {
     setSubmitting(false);
 
     if (error) {
-      alert("Error creating booking. Please try again.");
+      showToast("Error creating booking. Please try again.", "error");
       console.error(error);
     } else {
       navigate("/booking-confirmation", { state: { bookingReference } });

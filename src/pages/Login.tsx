@@ -3,6 +3,7 @@ import { useNavigate, useLocation, Link } from "react-router-dom";
 import { Plane, Mail, Lock, User, AlertCircle } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { Reveal } from "../components/Reveal";
+import { Helmet } from "react-helmet-async";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -59,6 +60,10 @@ export default function Login() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-20 transition-colors duration-200">
+      <Helmet>
+        <title>Login - Travellah</title>
+        <meta name="description" content="Sign in to your Travellah account to manage bookings and create personalized itineraries." />
+      </Helmet>
       <div className="max-w-md w-full">
         <Reveal>
           <div className="text-center mb-8">
