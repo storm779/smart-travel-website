@@ -230,33 +230,30 @@ export default function Navbar() {
 
             {user ? (
               <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    className={`flex items-center gap-2 pl-1.5 pr-3 py-1.5 rounded-xl transition-all duration-300 ${
+                <DropdownMenuTrigger 
+                  className={`flex items-center gap-2 pl-1.5 pr-3 py-1.5 rounded-xl transition-all duration-300 outline-none ${
+                    onHeroTransparent
+                      ? "hover:bg-white/10 text-white"
+                      : isDark
+                      ? "hover:bg-white/[0.06] text-foreground"
+                      : "hover:bg-muted text-foreground"
+                  }`}
+                >
+                  <Avatar size="sm" className="rounded-lg">
+                    <AvatarFallback className={`rounded-lg text-xs font-bold ${
                       onHeroTransparent
-                        ? "hover:bg-white/10 text-white"
+                        ? "bg-white/20 text-white"
                         : isDark
-                        ? "hover:bg-white/[0.06] text-foreground"
-                        : "hover:bg-muted text-foreground"
-                    }`}
-                  >
-                    <Avatar size="sm" className="rounded-lg">
-                      <AvatarFallback className={`rounded-lg text-xs font-bold ${
-                        onHeroTransparent
-                          ? "bg-white/20 text-white"
-                          : isDark
-                          ? "bg-gradient-to-br from-lilac-500/25 to-lilac-600/25 text-lilac-300 ring-1 ring-lilac-500/20"
-                          : "bg-gradient-to-br from-lilac-100 to-lilac-50 text-lilac-700 ring-1 ring-lilac-200/60"
-                      }`}>
-                        {userName.charAt(0).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <span className="text-[13px] font-medium max-w-[100px] truncate">
-                      {userName}
-                    </span>
-                    <ChevronDown className="h-3.5 w-3.5 opacity-50" />
-                  </Button>
+                        ? "bg-gradient-to-br from-lilac-500/25 to-lilac-600/25 text-lilac-300 ring-1 ring-lilac-500/20"
+                        : "bg-gradient-to-br from-lilac-100 to-lilac-50 text-lilac-700 ring-1 ring-lilac-200/60"
+                    }`}>
+                      {userName.charAt(0).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span className="text-[13px] font-medium max-w-[100px] truncate">
+                    {userName}
+                  </span>
+                  <ChevronDown className="h-3.5 w-3.5 opacity-50" />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56 rounded-2xl">
                   <DropdownMenuLabel className="font-normal">
@@ -270,36 +267,30 @@ export default function Navbar() {
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
-                    <Link to="/my-bookings" className="flex items-center gap-2.5 cursor-pointer">
-                      <Calendar className="h-4 w-4 opacity-50" />
-                      My Bookings
-                    </Link>
+                  <DropdownMenuItem onClick={() => navigate("/my-bookings")} className="flex items-center gap-2.5 cursor-pointer py-2">
+                    <Calendar className="h-4 w-4 opacity-50" />
+                    My Bookings
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to="/wishlist" className="flex items-center gap-2.5 cursor-pointer">
-                      <Heart className="h-4 w-4 opacity-50" />
-                      Wishlist
-                      {wishlist.length > 0 && (
+                  <DropdownMenuItem onClick={() => navigate("/wishlist")} className="flex items-center gap-2.5 cursor-pointer py-2">
+                    <Heart className="h-4 w-4 opacity-50" />
+                    Wishlist
+                    {wishlist.length > 0 && (
                         <span className="ml-auto flex items-center justify-center h-5 min-w-5 px-1.5 text-[11px] font-bold text-white bg-red-500 rounded-full">
                           {wishlist.length}
                         </span>
                       )}
-                    </Link>
                   </DropdownMenuItem>
                   {isAdmin && (
-                    <DropdownMenuItem asChild>
-                      <Link to="/admin" className="flex items-center gap-2.5 cursor-pointer">
-                        <Settings className="h-4 w-4 opacity-50" />
-                        Admin Dashboard
-                      </Link>
+                    <DropdownMenuItem onClick={() => navigate("/admin")} className="flex items-center gap-2.5 cursor-pointer py-2">
+                      <Settings className="h-4 w-4 opacity-50" />
+                      Admin Dashboard
                     </DropdownMenuItem>
                   )}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
                     variant="destructive"
                     onClick={handleSignOut}
-                    className="flex items-center gap-2.5 cursor-pointer"
+                    className="flex items-center gap-2.5 cursor-pointer py-2"
                   >
                     <LogOut className="h-4 w-4 opacity-60" />
                     Sign Out

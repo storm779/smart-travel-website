@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { MapPin, Calendar, Star, Check, X, Users, ArrowLeft, Heart } from "lucide-react";
+import { MapPin, Calendar, Star, Check, X, Users, ArrowLeft } from "lucide-react";
 import { supabase, Package as PackageType } from "../lib/supabase";
 import { useAuth } from "../contexts/AuthContext";
 import { Reveal } from "../components/Reveal";
@@ -194,70 +194,83 @@ export default function PackageDetails() {
                 </TabsTrigger>
               </TabsList>
 
-              <TabsContent value="itinerary">
-                <div className="flex flex-col gap-6">
+              <TabsContent value="itinerary" className="mt-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {pkg.detailed_itinerary.map((day, index) => (
                     <div
                       key={index}
-                      className="flex">
-                      <div className="flex-shrink-0 w-16 h-16 bg-lilac-600 text-white rounded-full flex items-center justify-center font-bold text-lg mr-4">
-                        {day.day}
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="text-xl font-semibold font-kugile text-foreground mb-2">
+                      className="group relative p-6 rounded-3xl bg-background border border-border shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col overflow-hidden"
+                    >
+                      {/* Decorative Background Blob */}
+                      <div className="absolute -top-10 -right-10 w-32 h-32 bg-lilac-500/10 dark:bg-lilac-400/5 rounded-full blur-3xl group-hover:bg-lilac-500/20 transition-all duration-500"></div>
+
+                      <div className="relative flex justify-between items-start mb-5">
+                        <h3 className="text-xl font-bold font-kugile text-foreground leading-tight pr-4">
                           {day.title}
                         </h3>
-                        <ul className="flex flex-col gap-2">
-                          {day.activities.map((activity, actIndex) => (
-                            <li
-                              key={actIndex}
-                              className="flex items-start gap-2">
-                              <Check className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
-                              <span className="text-foreground/80">{activity}</span>
-                            </li>
-                          ))}
-                        </ul>
+                        <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-lilac-500 to-lilac-600 text-white shadow-md shadow-lilac-500/20 rounded-2xl flex items-center justify-center font-bold text-lg rotate-3 group-hover:rotate-6 transition-transform duration-300">
+                          <span className="-rotate-3 group-hover:-rotate-6 transition-transform">
+                            {day.day}
+                          </span>
+                        </div>
                       </div>
+                      
+                      <Separator className="mb-5 bg-border/50 group-hover:bg-border transition-colors duration-300" />
+                      
+                      <ul className="flex flex-col gap-3.5 flex-1 relative">
+                        {day.activities.map((activity, actIndex) => (
+                          <li
+                            key={actIndex}
+                            className="flex items-start gap-3">
+                            <div className="mt-0.5 bg-green-100 dark:bg-green-500/10 p-1 rounded-full text-green-600 dark:text-green-400 flex-shrink-0">
+                              <Check className="h-3.5 w-3.5" />
+                            </div>
+                            <span className="text-[14.5px] text-muted-foreground leading-relaxed">
+                              {activity}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
                     </div>
                   ))}
                 </div>
               </TabsContent>
 
-              <TabsContent value="inclusions">
-                <div>
-                  <h3 className="text-xl font-bold font-kugile text-foreground mb-4 flex items-center gap-2">
-                    <Check className="h-6 w-6 text-green-600" />
-                    <span>What's Included</span>
+              <TabsContent value="inclusions" className="mt-8">
+                <div className="p-8 rounded-3xl bg-green-50/50 dark:bg-green-950/10 border border-green-100 dark:border-green-900/30">
+                  <h3 className="text-xl font-bold font-kugile text-foreground mb-6 flex items-center gap-3">
+                    <div className="p-2 bg-green-100 dark:bg-green-500/20 text-green-600 dark:text-green-400 rounded-xl">
+                      <Check className="h-6 w-6" />
+                    </div>
+                    <span>What's Included in this Package</span>
                   </h3>
-                  <ul className="flex flex-col gap-2">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {pkg.inclusions.map((item, index) => (
-                      <li
-                        key={index}
-                        className="flex items-start gap-2">
-                        <Check className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
-                        <span className="text-foreground/80">{item}</span>
-                      </li>
+                      <div key={index} className="flex items-start gap-3 bg-white dark:bg-gray-950/40 p-4 rounded-2xl shadow-sm border border-border/50">
+                        <Check className="h-5 w-5 text-green-600 dark:text-green-500 flex-shrink-0 mt-0.5" />
+                        <span className="text-foreground/80 leading-relaxed text-sm font-medium">{item}</span>
+                      </div>
                     ))}
-                  </ul>
+                  </div>
                 </div>
               </TabsContent>
 
-              <TabsContent value="exclusions">
-                <div>
-                  <h3 className="text-xl font-bold font-kugile text-foreground mb-4 flex items-center gap-2">
-                    <X className="h-6 w-6 text-red-600" />
+              <TabsContent value="exclusions" className="mt-8">
+                <div className="p-8 rounded-3xl bg-red-50/50 dark:bg-red-950/10 border border-red-100 dark:border-red-900/30">
+                  <h3 className="text-xl font-bold font-kugile text-foreground mb-6 flex items-center gap-3">
+                    <div className="p-2 bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-400 rounded-xl">
+                      <X className="h-6 w-6" />
+                    </div>
                     <span>What's Not Included</span>
                   </h3>
-                  <ul className="flex flex-col gap-2">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {pkg.exclusions.map((item, index) => (
-                      <li
-                        key={index}
-                        className="flex items-start gap-2">
-                        <X className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
-                        <span className="text-foreground/80">{item}</span>
-                      </li>
+                      <div key={index} className="flex items-start gap-3 bg-white dark:bg-gray-950/40 p-4 rounded-2xl shadow-sm border border-border/50">
+                        <X className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
+                        <span className="text-foreground/80 leading-relaxed text-sm font-medium">{item}</span>
+                      </div>
                     ))}
-                  </ul>
+                  </div>
                 </div>
               </TabsContent>
             </Tabs>
