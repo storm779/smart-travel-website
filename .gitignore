@@ -1,3 +1,4 @@
+# Logs
 logs
 *.log
 npm-debug.log*
@@ -6,13 +7,34 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Dependencies
 node_modules
+.npm
+
+# Builds & Outputs
 dist
 dist-ssr
-*.local
+build
+out
 
+# Caches & Testing
+.eslintcache
+.stylelintcache
+.tsbuildinfo
+coverage
+.nyc_output
+
+# Environment
+.env
+.env.*
+*.local
+!.env.example
+
+# IDEs & OS
 .vscode/*
 !.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/launch.json
 .idea
 .DS_Store
 *.suo
@@ -20,4 +42,11 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-.env
+*.code-workspace
+
+# Dev Tools / AI Agents (Local only)
+.claude
+.cursor
+.gemini
+.agents
+.playwright-mcp
