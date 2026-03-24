@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { Plane, Heart } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
 
 const links = [
   { label: "About", to: "/about" },
@@ -11,12 +12,13 @@ const links = [
 
 export default function FooterMinimal() {
   return (
-    <footer className="border-t border-gray-200 dark:border-white/10 bg-white dark:bg-gray-950">
+    <footer className="bg-background">
+      <Separator />
       <div className="max-w-7xl mx-auto px-6 lg:px-8 py-6 flex flex-col md:flex-row items-center justify-between gap-4">
         {/* Brand */}
         <Link to="/" className="flex items-center gap-2 group">
           <Plane className="h-4 w-4 text-lilac-400 transition-transform group-hover:rotate-12" />
-          <span className="text-sm font-bold font-kugile text-gray-900 dark:text-white">Travellah</span>
+          <span className="text-sm font-bold font-kugile text-foreground">Travellah</span>
         </Link>
 
         {/* Links */}
@@ -25,7 +27,7 @@ export default function FooterMinimal() {
             <Link
               key={link.label}
               to={link.to}
-              className="text-xs text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
             >
               {link.label}
             </Link>
@@ -33,9 +35,9 @@ export default function FooterMinimal() {
         </nav>
 
         {/* Copyright */}
-        <p className="text-gray-400 dark:text-gray-500 text-xs flex items-center gap-1">
+        <p className="text-muted-foreground text-xs flex items-center gap-1">
           &copy; {new Date().getFullYear()} Travellah
-          <span className="mx-1">·</span>
+          <span className="mx-1">&middot;</span>
           Made with <Heart size={10} className="text-lilac-500" fill="currentColor" /> in India
         </p>
       </div>

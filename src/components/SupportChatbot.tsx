@@ -1,8 +1,15 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { MessageCircle, X, Send, RotateCcw, Sparkles, Mic, MicOff } from "lucide-react";
+import { MessageCircle, X, Send, RotateCcw, Sparkles, Mic, MicOff, Bot } from "lucide-react";
 import { isGeminiAvailable } from "../services/geminiApi";
 import { getGeminiChatResponse, resetChatSession } from "../services/geminiChatService";
 import { useSpeechToText } from "../hooks/useSpeechToText";
+import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 
 interface Message {
   id: string;
@@ -146,11 +153,13 @@ export default function SupportChatbot() {
 
   if (!isOpen) {
     return (
-      <button
+      <Button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 bg-white hover:text-lilac-600 text-gray-900 p-4 rounded-full shadow-2xl transition-all duration-500 hover:scale-110 hover:-translate-y-1 z-50 border border-gray-100">
+        size="icon-lg"
+        variant="outline"
+        className="fixed bottom-6 right-6 h-14 w-14 rounded-full bg-background text-foreground shadow-2xl transition-all duration-500 hover:scale-110 hover:-translate-y-1 z-50">
         <MessageCircle className="h-6 w-6" />
-      </button>
+      </Button>
     );
   }
 
@@ -158,125 +167,152 @@ export default function SupportChatbot() {
   const showDynamicSuggestions = dynamicSuggestions.length > 0 && !isTyping;
 
   return (
-    <div className="fixed bottom-6 right-6 w-[90vw] md:w-[28rem] bg-white rounded-[2.5rem] shadow-2xl z-50 flex flex-col h-[600px] overflow-hidden border border-gray-100 transition-all duration-500 origin-bottom-right">
+    <Card className="fixed bottom-6 right-6 w-[90vw] md:w-[28rem] rounded-[2.5rem] shadow-2xl z-50 flex flex-col h-[600px] overflow-hidden transition-all duration-500 origin-bottom-right gap-0 py-0">
       {/* Header */}
-      <div className="px-8 py-6 bg-white z-10 border-b border-gray-50 flex justify-between items-start">
+      <CardHeader className="px-8 py-6 bg-card border-b border-border/50 flex flex-row justify-between items-start gap-4">
         <div>
-          <h3 className="font-kugile italic text-3xl text-gray-900 leading-tight">Need Help?</h3>
-          <p className="text-lilac-900/70 text-xs mt-2 font-medium tracking-wide italic">
+          <h3 className="font-kugile italic text-3xl text-foreground leading-tight">Need Help?</h3>
+          <p className="text-muted-foreground text-xs mt-2 font-medium tracking-wide italic">
             {isGeminiAvailable() ? "AI-powered travel assistant" : "We typically reply in a few minutes"}
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <button
+          <Button
             onClick={handleNewConversation}
-            className="text-gray-400 hover:text-gray-900 transition-colors p-2 hover:bg-gray-50 rounded-full"
+            variant="ghost"
+            size="icon-sm"
+            className="rounded-full text-muted-foreground hover:text-foreground"
             title="New conversation">
             <RotateCcw className="h-5 w-5" />
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={() => setIsOpen(false)}
-            className="text-gray-400 hover:text-gray-900 transition-colors p-2 hover:bg-gray-50 rounded-full">
+            variant="ghost"
+            size="icon-sm"
+            className="rounded-full text-muted-foreground hover:text-foreground">
             <X className="h-6 w-6" />
-          </button>
+          </Button>
         </div>
-      </div>
+      </CardHeader>
 
-      <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-gray-50 no-scrollbar">
-        {messages.map((message) => (
-          <div
-            key={message.id}
-            className={`flex ${message.sender === "user" ? "justify-end" : "justify-start"}`}>
-            <div
-              className={`max-w-[85%] p-4 rounded-2xl text-sm leading-relaxed shadow-sm ${
-                message.sender === "user"
-                  ? "bg-gray-900 text-white rounded-tr-none"
-                  : "bg-white text-gray-600 border border-gray-100 rounded-tl-none"
-              }`}>
-              <p className="whitespace-pre-line">{message.text}</p>
-            </div>
-          </div>
-        ))}
-
-        {/* Typing indicator */}
-        {isTyping && (
-          <div className="flex justify-start">
-            <div className="bg-white border border-gray-100 rounded-2xl rounded-tl-none p-4 shadow-sm">
-              <div className="flex items-center gap-1.5">
-                <div className="w-2 h-2 bg-lilac-400 rounded-full animate-bounce" style={{ animationDelay: "0ms" }}></div>
-                <div className="w-2 h-2 bg-lilac-400 rounded-full animate-bounce" style={{ animationDelay: "150ms" }}></div>
-                <div className="w-2 h-2 bg-lilac-400 rounded-full animate-bounce" style={{ animationDelay: "300ms" }}></div>
+      <CardContent className="flex-1 overflow-hidden p-0">
+        <ScrollArea className="h-full">
+          <div className="flex flex-col gap-6 p-6">
+            {messages.map((message) => (
+              <div
+                key={message.id}
+                className={`flex items-end gap-2 ${message.sender === "user" ? "justify-end" : "justify-start"}`}>
+                {message.sender === "bot" && (
+                  <Avatar size="sm">
+                    <AvatarFallback className="bg-primary/10 text-primary">
+                      <Bot className="h-3 w-3" />
+                    </AvatarFallback>
+                  </Avatar>
+                )}
+                <div
+                  className={`max-w-[80%] p-4 rounded-2xl text-sm leading-relaxed shadow-sm ${
+                    message.sender === "user"
+                      ? "bg-primary text-primary-foreground rounded-tr-none"
+                      : "bg-muted text-foreground border border-border/50 rounded-tl-none"
+                  }`}>
+                  <p className="whitespace-pre-line">{message.text}</p>
+                </div>
               </div>
-            </div>
-          </div>
-        )}
+            ))}
 
-        <div ref={messagesEndRef} />
-      </div>
+            {/* Typing indicator */}
+            {isTyping && (
+              <div className="flex items-end gap-2 justify-start">
+                <Avatar size="sm">
+                  <AvatarFallback className="bg-primary/10 text-primary">
+                    <Bot className="h-3 w-3" />
+                  </AvatarFallback>
+                </Avatar>
+                <div className="bg-muted border border-border/50 rounded-2xl rounded-tl-none p-4 shadow-sm">
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-2 h-2 bg-primary/60 rounded-full animate-bounce" style={{ animationDelay: "0ms" }}></div>
+                    <div className="w-2 h-2 bg-primary/60 rounded-full animate-bounce" style={{ animationDelay: "150ms" }}></div>
+                    <div className="w-2 h-2 bg-primary/60 rounded-full animate-bounce" style={{ animationDelay: "300ms" }}></div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div ref={messagesEndRef} />
+          </div>
+        </ScrollArea>
+      </CardContent>
 
       {/* Suggestions */}
       {(showDefaultSuggestions || showDynamicSuggestions) && (
-        <div className="px-6 py-4 bg-white border-t border-gray-50">
-          <p className="text-xs text-gray-400 mb-3 uppercase tracking-wider font-bold">
-            {showDynamicSuggestions ? "Follow up:" : "Suggested topics:"}
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {(showDynamicSuggestions ? dynamicSuggestions : defaultQuickReplies).map((reply) => (
-              <button
-                key={reply}
-                onClick={() => handleQuickReply(reply)}
-                className="text-xs bg-white border border-gray-200 hover:border-lilac-600 hover:text-lilac-600 text-gray-600 px-4 py-2 rounded-full transition-all duration-300 shadow-sm hover:shadow-md">
-                {reply}
-              </button>
-            ))}
+        <>
+          <Separator />
+          <div className="px-6 py-4 bg-card">
+            <p className="text-xs text-muted-foreground mb-3 uppercase tracking-wider font-bold">
+              {showDynamicSuggestions ? "Follow up:" : "Suggested topics:"}
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {(showDynamicSuggestions ? dynamicSuggestions : defaultQuickReplies).map((reply) => (
+                <Badge
+                  key={reply}
+                  variant="outline"
+                  onClick={() => handleQuickReply(reply)}
+                  className="cursor-pointer px-4 py-2 h-auto text-xs font-normal hover:bg-primary/10 hover:text-primary hover:border-primary transition-all duration-300 shadow-sm hover:shadow-md">
+                  {reply}
+                </Badge>
+              ))}
+            </div>
           </div>
-        </div>
+        </>
       )}
 
-      <div className="p-4 border-t border-gray-50 bg-white">
-        <div className="flex items-center bg-gray-50 rounded-full px-2 py-2 border border-gray-100 focus-within:border-lilac-300 focus-within:ring-4 focus-within:ring-lilac-100 transition-all duration-300">
-          <input
+      <CardFooter className="flex-col gap-2 p-4 border-t border-border/50 bg-card">
+        <div className="flex items-center gap-2 w-full bg-muted rounded-full px-2 py-2 border border-border/50 focus-within:border-ring focus-within:ring-4 focus-within:ring-ring/20 transition-all duration-300">
+          <Input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSend()}
             placeholder="Type your message..."
             disabled={isTyping}
-            className="flex-1 bg-transparent px-4 py-2 focus:outline-none text-sm text-gray-900 placeholder-gray-400 disabled:opacity-50"
+            className="flex-1 border-0 bg-transparent px-4 py-2 focus-visible:ring-0 focus-visible:border-transparent text-sm text-foreground placeholder:text-muted-foreground disabled:opacity-50 h-auto"
           />
           {isSpeechSupported && (
-            <button
+            <Button
               onClick={isListening ? stopListening : startListening}
               disabled={isTyping || isSpeechProcessing}
-              className={`p-3 rounded-full transition-all duration-300 ${
+              variant="ghost"
+              size="icon-sm"
+              className={`rounded-full transition-all duration-300 ${
                 isListening
-                  ? "bg-red-500 text-white animate-pulse"
+                  ? "bg-destructive text-destructive-foreground animate-pulse"
                   : isSpeechProcessing
-                  ? "bg-lilac-100 text-lilac-600 animate-pulse"
-                  : "text-gray-400 hover:text-gray-600 hover:bg-gray-100"
+                  ? "bg-primary/10 text-primary animate-pulse"
+                  : "text-muted-foreground hover:text-foreground"
               }`}
               title={isListening ? "Stop recording" : isSpeechProcessing ? "Transcribing..." : "Voice input"}>
               {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
-            </button>
+            </Button>
           )}
-          <button
+          <Button
             onClick={handleSend}
             disabled={!input.trim() || isTyping}
-            className={`p-3 rounded-full transition-all duration-300 ${
+            size="icon-sm"
+            className={`rounded-full transition-all duration-300 ${
               input.trim() && !isTyping
-                ? "bg-gray-900 text-white hover:bg-lilac-600 hover:scale-105 shadow-md"
-                : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                ? "bg-primary text-primary-foreground hover:bg-primary/80 hover:scale-105 shadow-md"
+                : "bg-muted text-muted-foreground cursor-not-allowed"
             }`}>
             <Send className="h-4 w-4" />
-          </button>
+          </Button>
         </div>
         {isGeminiAvailable() && (
-          <div className="flex items-center justify-center gap-1 mt-2 text-[10px] text-gray-400">
+          <div className="flex items-center justify-center gap-1 text-[10px] text-muted-foreground">
             <Sparkles className="h-3 w-3" />
             Powered by Gemini AI
           </div>
         )}
-      </div>
-    </div>
+      </CardFooter>
+    </Card>
   );
 }

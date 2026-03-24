@@ -23,6 +23,14 @@ import { useTheme } from "../contexts/ThemeContext";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
+import { Switch } from "@/components/ui/switch";
+
 const Globe = lazy(() => import("react-globe.gl"));
 
 // Fix for default marker icon
@@ -98,7 +106,7 @@ function SlideshowImage({ images, title }: { images: string[]; title: string }) 
 
   return (
     <div
-      className="w-28 h-[82px] rounded-xl overflow-hidden flex-shrink-0 bg-gray-100 dark:bg-slate-700 relative"
+      className="w-28 h-[82px] rounded-xl overflow-hidden flex-shrink-0 bg-muted relative"
       onMouseEnter={startSlideshow}
       onMouseLeave={stopSlideshow}>
       {images.map((img, idx) => (
@@ -216,7 +224,7 @@ function GlobeView({
     <div className="w-full h-full relative" onMouseDown={handleInteraction}>
       <Suspense
         fallback={
-          <div className="absolute inset-0 flex items-center justify-center bg-gray-50 dark:bg-slate-900">
+          <div className="absolute inset-0 flex items-center justify-center bg-background">
             <Loader2 className="animate-spin text-lilac-600" size={36} />
           </div>
         }>
@@ -278,22 +286,24 @@ function GlobeView({
 
       {/* Hover tooltip */}
       {hoverPkg && (
-        <div
-          className="fixed z-50 pointer-events-none bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-gray-200 dark:border-slate-700 p-3 min-w-[200px]"
+        <Card
+          className="fixed z-50 pointer-events-none shadow-xl min-w-[200px] py-3"
           style={{ left: tooltipPos.x + 15, top: tooltipPos.y - 10 }}>
-          <p className="font-bold text-sm text-gray-900 dark:text-white">{hoverPkg.title}</p>
-          <p className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1 mt-1">
-            <MapPin size={10} /> {hoverPkg.destination}
-          </p>
-          <div className="flex items-center gap-2 mt-1.5 text-xs text-gray-500 dark:text-gray-400">
-            <span className="flex items-center gap-0.5">
-              <Star size={10} className="text-amber-500" fill="currentColor" />
-              {hoverPkg.rating}
-            </span>
-            <span>{hoverPkg.duration_days}D/{hoverPkg.duration_nights}N</span>
-            <span className="font-bold text-gray-900 dark:text-white">₹{hoverPkg.price_per_person.toLocaleString()}</span>
-          </div>
-        </div>
+          <CardContent className="p-3">
+            <p className="font-bold text-sm text-foreground">{hoverPkg.title}</p>
+            <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+              <MapPin size={10} /> {hoverPkg.destination}
+            </p>
+            <div className="flex items-center gap-2 mt-1.5 text-xs text-muted-foreground">
+              <span className="flex items-center gap-0.5">
+                <Star size={10} className="text-amber-500" fill="currentColor" />
+                {hoverPkg.rating}
+              </span>
+              <span>{hoverPkg.duration_days}D/{hoverPkg.duration_nights}N</span>
+              <span className="font-bold text-foreground">₹{hoverPkg.price_per_person.toLocaleString()}</span>
+            </div>
+          </CardContent>
+        </Card>
       )}
     </div>
   );
@@ -395,111 +405,87 @@ export default function ExploreMap() {
           <div
             className={`transition-all duration-300 ${
               sidebarOpen ? "w-full md:w-[400px]" : "w-0"
-            } flex-shrink-0 bg-white dark:bg-slate-900 border-r border-gray-200 dark:border-slate-800 flex flex-col overflow-hidden z-10`}>
+            } flex-shrink-0 bg-background border-r border-border flex flex-col overflow-hidden z-10`}>
 
             {/* Header */}
-            <div className="px-4 pt-4 pb-3 border-b border-gray-100 dark:border-slate-800">
+            <div className="px-4 pt-4 pb-3 border-b border-border">
               <div className="flex items-center gap-2 mb-3">
-                <Link
-                  to="/packages"
-                  className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors">
-                  <ChevronLeft size={18} className="text-gray-500 dark:text-gray-400" />
-                </Link>
-                <h2 className="font-kugile text-xl text-gray-900 dark:text-white">Explore Map</h2>
-                <div className="ml-auto flex items-center gap-1.5">
-                  {/* 2D / 3D toggle */}
-                  <div className="flex bg-gray-100 dark:bg-slate-800 rounded-lg p-0.5">
-                    <button
-                      onClick={() => setViewMode("2d")}
-                      className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all ${
-                        viewMode === "2d"
-                          ? "bg-white dark:bg-slate-700 text-gray-900 dark:text-white shadow-sm"
-                          : "text-gray-500 dark:text-gray-400 hover:text-gray-700"
-                      }`}>
-                      <MapIcon size={13} className="inline mr-1" />
-                      2D
-                    </button>
-                    <button
-                      onClick={() => setViewMode("3d")}
-                      className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all ${
-                        viewMode === "3d"
-                          ? "bg-white dark:bg-slate-700 text-gray-900 dark:text-white shadow-sm"
-                          : "text-gray-500 dark:text-gray-400 hover:text-gray-700"
-                      }`}>
-                      <GlobeIcon size={13} className="inline mr-1" />
-                      3D
-                    </button>
+                <Button variant="ghost" size="icon" asChild>
+                  <Link to="/packages">
+                    <ChevronLeft size={18} className="text-muted-foreground" />
+                  </Link>
+                </Button>
+                <h2 className="font-kugile text-xl text-foreground">Explore Map</h2>
+                <div className="ml-auto flex items-center gap-2">
+                  {/* 2D / 3D toggle with Switch */}
+                  <div className="flex items-center gap-1.5">
+                    <MapIcon size={13} className={`${viewMode === "2d" ? "text-foreground" : "text-muted-foreground"}`} />
+                    <Switch
+                      size="sm"
+                      checked={viewMode === "3d"}
+                      onCheckedChange={(checked) => setViewMode(checked ? "3d" : "2d")}
+                    />
+                    <GlobeIcon size={13} className={`${viewMode === "3d" ? "text-foreground" : "text-muted-foreground"}`} />
                   </div>
-                  <button
-                    onClick={() => setShowFilters(!showFilters)}
-                    className={`p-2 rounded-xl border transition-colors ${
-                      showFilters
-                        ? "bg-lilac-600 text-white border-lilac-600"
-                        : "bg-white dark:bg-slate-800 text-gray-500 dark:text-gray-400 border-gray-200 dark:border-slate-700 hover:bg-gray-50"
-                    }`}>
+                  <Button
+                    variant={showFilters ? "default" : "outline"}
+                    size="icon"
+                    onClick={() => setShowFilters(!showFilters)}>
                     <Filter size={16} />
-                  </button>
+                  </Button>
                 </div>
               </div>
 
               {/* Search */}
               <div className="relative">
-                <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                <input
+                <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground z-10" />
+                <Input
                   type="text"
                   placeholder="Search destinations, themes..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2 rounded-xl bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-lilac-500 text-gray-900 dark:text-white placeholder:text-gray-400"
+                  className="pl-9 h-9 rounded-xl"
                 />
               </div>
 
               {/* Filters */}
               {showFilters && (
-                <div className="mt-3 space-y-3 animate-fade-in">
+                <div className="mt-3 flex flex-col gap-3 animate-fade-in">
                   <div className="flex gap-1.5">
                     {(["all", "domestic", "international"] as const).map((cat) => (
-                      <button
+                      <Button
                         key={cat}
+                        variant={categoryFilter === cat ? "default" : "secondary"}
+                        size="sm"
                         onClick={() => setCategoryFilter(cat)}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors capitalize ${
-                          categoryFilter === cat
-                            ? "bg-lilac-600 text-white"
-                            : "bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200"
-                        }`}>
+                        className="capitalize">
                         {cat === "all" ? "All" : cat}
-                      </button>
+                      </Button>
                     ))}
                   </div>
 
                   <div className="flex flex-wrap gap-1">
-                    <button
-                      onClick={() => setThemeFilter("all")}
-                      className={`px-2 py-1 rounded-md text-[11px] font-medium transition-colors ${
-                        themeFilter === "all"
-                          ? "bg-lilac-600 text-white"
-                          : "bg-gray-100 dark:bg-slate-800 text-gray-500 dark:text-gray-400"
-                      }`}>
+                    <Badge
+                      variant={themeFilter === "all" ? "default" : "secondary"}
+                      className="cursor-pointer"
+                      onClick={() => setThemeFilter("all")}>
                       All
-                    </button>
+                    </Badge>
                     {THEMES.map((theme) => (
-                      <button
+                      <Badge
                         key={theme}
-                        onClick={() => setThemeFilter(theme)}
-                        className={`px-2 py-1 rounded-md text-[11px] font-medium transition-colors ${
-                          themeFilter === theme
-                            ? "bg-lilac-600 text-white"
-                            : "bg-gray-100 dark:bg-slate-800 text-gray-500 dark:text-gray-400"
-                        }`}>
+                        variant={themeFilter === theme ? "default" : "secondary"}
+                        className="cursor-pointer"
+                        onClick={() => setThemeFilter(theme)}>
                         {theme}
-                      </button>
+                      </Badge>
                     ))}
                   </div>
 
                   <div>
-                    <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mb-1">
+                    <div className="flex justify-between text-xs text-muted-foreground mb-1">
                       <span>Max Budget</span>
-                      <span className="font-semibold text-gray-700 dark:text-gray-300">₹{budgetMax.toLocaleString()}</span>
+                      <span className="font-semibold text-foreground">₹{budgetMax.toLocaleString()}</span>
                     </div>
                     <input
                       type="range"
@@ -508,97 +494,106 @@ export default function ExploreMap() {
                       step={1000}
                       value={budgetMax}
                       onChange={(e) => setBudgetMax(Number(e.target.value))}
-                      className="w-full accent-lilac-600 h-1.5"
+                      className="w-full accent-primary h-1.5"
                     />
                   </div>
                 </div>
               )}
 
-              <p className="text-xs text-gray-400 font-medium mt-2">
+              <p className="text-xs text-muted-foreground font-medium mt-2">
                 {packagesWithCoords.length} destination{packagesWithCoords.length !== 1 ? "s" : ""} on map
               </p>
             </div>
 
             {/* Package cards */}
-            <div className="flex-grow overflow-y-auto p-3 space-y-2">
-              {loading ? (
-                <div className="flex items-center justify-center py-20">
-                  <Loader2 className="animate-spin text-lilac-600" size={28} />
-                </div>
-              ) : packagesWithCoords.length === 0 ? (
-                <div className="text-center py-20 text-gray-400">
-                  <MapIcon size={36} className="mx-auto mb-3 opacity-40" />
-                  <p className="text-sm">No destinations match your filters</p>
-                </div>
-              ) : (
-                packagesWithCoords.map((pkg) => (
-                  <div
-                    key={pkg.id}
-                    ref={(el) => { cardRefs.current[pkg.id] = el; }}
-                    onClick={() => handleCardClick(pkg)}
-                    className={`flex gap-3 p-2.5 rounded-2xl cursor-pointer transition-all duration-200 border group ${
-                      selectedPkg === pkg.id
-                        ? "bg-lilac-50 dark:bg-lilac-900/20 border-lilac-300 dark:border-lilac-600 shadow-md ring-1 ring-lilac-200 dark:ring-lilac-800"
-                        : "bg-white dark:bg-slate-800/80 border-gray-100 dark:border-slate-700 hover:shadow-md hover:border-gray-200 dark:hover:border-slate-600"
-                    }`}>
-                    {/* Slideshow Image */}
-                    <SlideshowImage images={pkg.images} title={pkg.title} />
-
-                    {/* Info */}
-                    <div className="flex-grow min-w-0 py-0.5">
-                      <h4 className="font-semibold text-gray-900 dark:text-white text-[13px] line-clamp-1 leading-tight">
-                        {pkg.title}
-                      </h4>
-                      <p className="text-[11px] text-gray-500 dark:text-gray-400 flex items-center gap-1 mt-1">
-                        <MapIcon size={9} /> {pkg.destination}
-                        <span className="ml-1 px-1.5 py-0.5 rounded bg-gray-100 dark:bg-slate-700 text-[10px] font-medium capitalize">
-                          {pkg.category}
-                        </span>
-                      </p>
-                      <div className="flex items-center gap-2.5 mt-2 text-[11px] text-gray-500 dark:text-gray-400">
-                        <span className="flex items-center gap-0.5">
-                          <Star size={10} className="text-amber-500" fill="currentColor" />
-                          {pkg.rating}
-                        </span>
-                        <span className="flex items-center gap-0.5">
-                          <Clock size={9} />
-                          {pkg.duration_days}D/{pkg.duration_nights}N
-                        </span>
-                        <span className="flex items-center gap-0.5 font-bold text-gray-800 dark:text-white text-xs">
-                          <IndianRupee size={10} />
-                          {pkg.price_per_person.toLocaleString()}
-                        </span>
-                      </div>
-                    </div>
-
-                    <Link
-                      to={`/packages/${pkg.id}`}
-                      onClick={(e) => e.stopPropagation()}
-                      className="self-center p-2 rounded-xl bg-gray-900 dark:bg-lilac-600 text-white hover:bg-lilac-600 dark:hover:bg-lilac-700 transition-all flex-shrink-0 opacity-70 group-hover:opacity-100">
-                      <ArrowRight size={14} />
-                    </Link>
+            <ScrollArea className="flex-grow">
+              <div className="p-3 flex flex-col gap-2">
+                {loading ? (
+                  <div className="flex items-center justify-center py-20">
+                    <Loader2 className="animate-spin text-primary" size={28} />
                   </div>
-                ))
-              )}
-            </div>
+                ) : packagesWithCoords.length === 0 ? (
+                  <div className="text-center py-20 text-muted-foreground">
+                    <MapIcon size={36} className="mx-auto mb-3 opacity-40" />
+                    <p className="text-sm">No destinations match your filters</p>
+                  </div>
+                ) : (
+                  packagesWithCoords.map((pkg) => (
+                    <Card
+                      key={pkg.id}
+                      ref={(el) => { cardRefs.current[pkg.id] = el; }}
+                      onClick={() => handleCardClick(pkg)}
+                      className={`flex flex-row gap-3 p-2.5 cursor-pointer transition-all duration-200 group ${
+                        selectedPkg === pkg.id
+                          ? "bg-primary/5 border-primary/30 shadow-md ring-1 ring-primary/20"
+                          : "bg-card hover:shadow-md hover:border-border"
+                      }`}>
+                      {/* Slideshow Image */}
+                      <SlideshowImage images={pkg.images} title={pkg.title} />
+
+                      {/* Info */}
+                      <div className="flex-grow min-w-0 py-0.5">
+                        <h4 className="font-semibold text-foreground text-[13px] line-clamp-1 leading-tight">
+                          {pkg.title}
+                        </h4>
+                        <p className="text-[11px] text-muted-foreground flex items-center gap-1 mt-1">
+                          <MapIcon size={9} /> {pkg.destination}
+                          <Badge variant="secondary" className="ml-1 text-[10px] capitalize px-1.5 py-0">
+                            {pkg.category}
+                          </Badge>
+                        </p>
+                        <div className="flex items-center gap-2.5 mt-2 text-[11px] text-muted-foreground">
+                          <span className="flex items-center gap-0.5">
+                            <Star size={10} className="text-amber-500" fill="currentColor" />
+                            {pkg.rating}
+                          </span>
+                          <span className="flex items-center gap-0.5">
+                            <Clock size={9} />
+                            {pkg.duration_days}D/{pkg.duration_nights}N
+                          </span>
+                          <span className="flex items-center gap-0.5 font-bold text-foreground text-xs">
+                            <IndianRupee size={10} />
+                            {pkg.price_per_person.toLocaleString()}
+                          </span>
+                        </div>
+                      </div>
+
+                      <Button
+                        variant="default"
+                        size="icon-sm"
+                        className="self-center flex-shrink-0 opacity-70 group-hover:opacity-100"
+                        asChild>
+                        <Link
+                          to={`/packages/${pkg.id}`}
+                          onClick={(e) => e.stopPropagation()}>
+                          <ArrowRight size={14} />
+                        </Link>
+                      </Button>
+                    </Card>
+                  ))
+                )}
+              </div>
+            </ScrollArea>
           </div>
 
           {/* Mobile sidebar toggle */}
-          <button
+          <Button
+            variant="outline"
+            size="icon"
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className={`absolute top-4 z-20 md:hidden p-2.5 rounded-xl bg-white dark:bg-slate-800 shadow-lg border border-gray-200 dark:border-slate-700 transition-all ${
+            className={`absolute top-4 z-20 md:hidden shadow-lg transition-all ${
               sidebarOpen ? "left-[calc(100%-3rem)]" : "left-4"
             }`}>
             {sidebarOpen ? <X size={18} /> : <Filter size={18} />}
-          </button>
+          </Button>
 
           {/* Map / Globe area */}
           <div className="flex-grow relative">
             {loading ? (
-              <div className="absolute inset-0 flex items-center justify-center bg-gray-50 dark:bg-slate-900">
+              <div className="absolute inset-0 flex items-center justify-center bg-background">
                 <div className="text-center">
-                  <Loader2 className="animate-spin text-lilac-600 mx-auto mb-3" size={36} />
-                  <p className="text-sm text-gray-400">Loading destinations...</p>
+                  <Loader2 className="animate-spin text-primary mx-auto mb-3" size={36} />
+                  <p className="text-sm text-muted-foreground">Loading destinations...</p>
                 </div>
               </div>
             ) : viewMode === "3d" ? (
@@ -646,16 +641,16 @@ export default function ExploreMap() {
                         }}>
                         <Popup className="custom-popup" closeButton={false}>
                           <div className="w-56 p-1">
-                            <div className="h-32 w-full mb-2.5 rounded-xl overflow-hidden bg-gray-100 relative group">
+                            <div className="h-32 w-full mb-2.5 rounded-xl overflow-hidden bg-muted relative group">
                               <img
                                 src={pkg.images[0]}
                                 alt={pkg.title}
                                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                               />
                               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                              <span className="absolute top-2 left-2 bg-white/90 backdrop-blur-sm px-2 py-0.5 rounded-md text-[10px] font-semibold capitalize text-gray-700">
+                              <Badge variant="secondary" className="absolute top-2 left-2 backdrop-blur-sm text-[10px] capitalize">
                                 {pkg.category}
-                              </span>
+                              </Badge>
                               <span className="absolute bottom-2 right-2 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-md text-xs font-bold text-gray-900">
                                 ₹{pkg.price_per_person.toLocaleString()}
                               </span>
@@ -671,11 +666,11 @@ export default function ExploreMap() {
                               <span>{pkg.duration_days}D/{pkg.duration_nights}N</span>
                               <span className="capitalize">{pkg.theme}</span>
                             </div>
-                            <Link
-                              to={`/packages/${pkg.id}`}
-                              className="block text-center text-xs bg-gray-900 text-white px-4 py-2 rounded-xl hover:bg-lilac-600 transition-all font-medium">
-                              View Details <ArrowRight size={10} className="inline ml-1" />
-                            </Link>
+                            <Button variant="default" size="sm" className="w-full" asChild>
+                              <Link to={`/packages/${pkg.id}`}>
+                                View Details <ArrowRight size={10} className="ml-1" />
+                              </Link>
+                            </Button>
                           </div>
                         </Popup>
                       </Marker>
@@ -685,39 +680,40 @@ export default function ExploreMap() {
               </MapContainer>
             )}
 
-            {/* Legend — only show on 2D map */}
+            {/* Legend -- only show on 2D map */}
             {viewMode === "2d" && (
-              <div className="absolute bottom-5 right-5 z-10 bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm rounded-xl px-3.5 py-2.5 shadow-lg border border-gray-200 dark:border-slate-700">
+              <Card className="absolute bottom-5 right-5 z-10 backdrop-blur-sm py-2.5 px-3.5">
                 <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-400">
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                     <span className="w-2.5 h-2.5 rounded-full bg-purple-600 shadow-sm" />
                     Domestic
                   </div>
-                  <div className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-400">
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                     <span className="w-2.5 h-2.5 rounded-full bg-blue-600 shadow-sm" />
                     International
                   </div>
                 </div>
-              </div>
+              </Card>
             )}
 
             {/* 3D Globe legend */}
             {viewMode === "3d" && (
-              <div className="absolute bottom-5 right-5 z-10 bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm rounded-xl px-4 py-3 shadow-lg border border-gray-200 dark:border-slate-700">
-                <div className="space-y-1.5">
-                  <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
+              <Card className="absolute bottom-5 right-5 z-10 backdrop-blur-sm py-3 px-4">
+                <div className="flex flex-col gap-1.5">
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
                     <span className="w-2.5 h-2.5 rounded-full bg-purple-600" />
                     Domestic
                   </div>
-                  <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
                     <span className="w-2.5 h-2.5 rounded-full bg-blue-600" />
                     International
                   </div>
-                  <p className="text-[10px] text-gray-400 pt-1 border-t border-gray-200 dark:border-slate-700">
-                    Click a point to select • Drag to rotate
+                  <Separator className="my-1" />
+                  <p className="text-[10px] text-muted-foreground">
+                    Click a point to select &bull; Drag to rotate
                   </p>
                 </div>
-              </div>
+              </Card>
             )}
           </div>
         </div>

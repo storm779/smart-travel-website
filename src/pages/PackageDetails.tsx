@@ -1,9 +1,16 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { MapPin, Calendar, Star, Check, X, Users, ArrowLeft } from "lucide-react";
+import { MapPin, Calendar, Star, Check, X, Users, ArrowLeft, Heart } from "lucide-react";
 import { supabase, Package as PackageType } from "../lib/supabase";
 import { useAuth } from "../contexts/AuthContext";
 import { Reveal } from "../components/Reveal";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Separator } from "@/components/ui/separator";
+import ReviewsSection from "../components/ReviewsSection";
+import WishlistButton from "../components/WishlistButton";
 
 export default function PackageDetails() {
   const { id } = useParams<{ id: string }>();
@@ -43,10 +50,10 @@ export default function PackageDetails() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 pt-28 flex items-center justify-center">
+      <div className="min-h-screen bg-muted pt-28 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-lilac-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading package details...</p>
+          <p className="mt-4 text-muted-foreground">Loading package details...</p>
         </div>
       </div>
     );
@@ -54,34 +61,37 @@ export default function PackageDetails() {
 
   if (!pkg) {
     return (
-      <div className="min-h-screen bg-gray-50 pt-28 flex items-center justify-center">
+      <div className="min-h-screen bg-muted pt-28 flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold font-kugile text-gray-900 mb-4">Package not found</h2>
-          <button
+          <h2 className="text-2xl font-bold font-kugile text-foreground mb-4">Package not found</h2>
+          <Button
             onClick={() => navigate("/packages")}
+            variant="link"
             className="text-lilac-600 hover:text-lilac-700 font-medium">
             Back to Packages
-          </button>
+          </Button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-28 pb-16">
+    <div className="min-h-screen bg-muted pt-28 pb-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <Reveal>
-          <button
+          <Button
             onClick={() => navigate("/packages")}
-            className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 mb-6">
+            variant="ghost"
+            className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6">
             <ArrowLeft className="h-5 w-5" />
             <span>Back to Packages</span>
-          </button>
+          </Button>
         </Reveal>
 
         <Reveal delay={0.2}>
-          <div className="bg-white rounded-[2.5rem] shadow-lg overflow-hidden">
+          <Card className="rounded-[2.5rem] shadow-lg overflow-hidden border-none">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 p-8">
+              {/* Image Gallery */}
               <div>
                 <div className="mb-4">
                   <img
@@ -111,140 +121,173 @@ export default function PackageDetails() {
                 )}
               </div>
 
+              {/* Package Info */}
               <div>
                 <div className="mb-6">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="bg-lilac-100 text-lilac-800 px-3 py-1 rounded-full text-sm font-semibold">
+                    <Badge className="bg-lilac-100 text-lilac-800 px-3 py-1 rounded-full text-sm font-semibold h-auto">
                       {pkg.theme.charAt(0).toUpperCase() + pkg.theme.slice(1)}
-                    </span>
-                    <div className="flex items-center space-x-1">
+                    </Badge>
+                    <div className="flex items-center gap-1">
                       <Star className="h-5 w-5 text-yellow-500 fill-current" />
                       <span className="font-semibold">{pkg.rating}</span>
-                      <span className="text-gray-600 text-sm">({pkg.total_ratings} reviews)</span>
+                      <span className="text-muted-foreground text-sm">({pkg.total_ratings} reviews)</span>
                     </div>
                   </div>
-                  <h1 className="text-3xl font-bold font-kugile text-gray-900 mb-4">{pkg.title}</h1>
-                  <div className="flex items-center space-x-6 text-gray-600 mb-4">
-                    <div className="flex items-center space-x-2">
+                  <h1 className="text-3xl font-bold font-kugile text-foreground mb-4">{pkg.title}</h1>
+                  <div className="flex items-center gap-6 text-muted-foreground mb-4">
+                    <div className="flex items-center gap-2">
                       <MapPin className="h-5 w-5" />
                       <span>{pkg.destination}</span>
                     </div>
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center gap-2">
                       <Calendar className="h-5 w-5" />
                       <span>
                         {pkg.duration_days} Days / {pkg.duration_nights} Nights
                       </span>
                     </div>
                   </div>
-                  <p className="text-gray-700 leading-relaxed">{pkg.description}</p>
+                  <p className="text-foreground/80 leading-relaxed">{pkg.description}</p>
                 </div>
 
-                <div className="bg-lilac-50 p-6 rounded-3xl mb-6">
-                  <div className="text-center">
-                    <p className="text-gray-600 mb-2">Starting from</p>
-                    <div className="text-4xl font-bold text-lilac-600 mb-1">
-                      ₹{pkg.price_per_person.toLocaleString("en-IN")}
+                <Card className="bg-lilac-50 border-none rounded-3xl mb-6">
+                  <CardContent className="p-6">
+                    <div className="text-center">
+                      <p className="text-muted-foreground mb-2">Starting from</p>
+                      <div className="text-4xl font-bold text-lilac-600 mb-1">
+                        ₹{pkg.price_per_person.toLocaleString("en-IN")}
+                      </div>
+                      <p className="text-muted-foreground">per person</p>
                     </div>
-                    <p className="text-gray-600">per person</p>
-                  </div>
-                </div>
+                  </CardContent>
+                </Card>
 
-                <button
-                  onClick={handleBookNow}
-                  className="w-full bg-lilac-600 hover:bg-lilac-700 text-white font-semibold py-4 rounded-xl transition flex items-center justify-center space-x-2">
-                  <Users className="h-5 w-5" />
-                  <span>Book This Package</span>
-                </button>
+                <div className="flex items-center gap-3">
+                  <Button
+                    onClick={handleBookNow}
+                    className="flex-1 bg-lilac-600 hover:bg-lilac-700 text-white font-semibold py-4 h-auto rounded-xl transition flex items-center justify-center gap-2"
+                    size="lg">
+                    <Users className="h-5 w-5" />
+                    <span>Book This Package</span>
+                  </Button>
+                  <WishlistButton
+                    packageId={id!}
+                    className="h-14 w-14 rounded-xl border border-border bg-muted hover:bg-muted/80 text-muted-foreground"
+                  />
+                </div>
               </div>
             </div>
 
-            <div className="border-t p-8">
-              <h2 className="text-2xl font-bold font-kugile text-gray-900 mb-6">
-                Day-wise Itinerary
-              </h2>
-              <div className="space-y-6">
-                {pkg.detailed_itinerary.map((day, index) => (
-                  <div
-                    key={index}
-                    className="flex">
-                    <div className="flex-shrink-0 w-16 h-16 bg-lilac-600 text-white rounded-full flex items-center justify-center font-bold text-lg mr-4">
-                      {day.day}
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="text-xl font-semibold font-kugile text-gray-900 mb-2">
-                        {day.title}
-                      </h3>
-                      <ul className="space-y-2">
-                        {day.activities.map((activity, actIndex) => (
-                          <li
-                            key={actIndex}
-                            className="flex items-start space-x-2">
-                            <Check className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
-                            <span className="text-gray-700">{activity}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <Separator />
 
-            <div className="border-t p-8">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Tabs for Itinerary, Inclusions, Exclusions */}
+            <Tabs defaultValue="itinerary" className="p-8">
+              <TabsList className="w-full justify-start mb-6 bg-muted rounded-xl h-auto p-1">
+                <TabsTrigger value="itinerary" className="rounded-lg px-6 py-2.5 text-base font-kugile data-[state=active]:bg-card data-[state=active]:shadow-sm">
+                  Day-wise Itinerary
+                </TabsTrigger>
+                <TabsTrigger value="inclusions" className="rounded-lg px-6 py-2.5 text-base font-kugile data-[state=active]:bg-card data-[state=active]:shadow-sm">
+                  Inclusions
+                </TabsTrigger>
+                <TabsTrigger value="exclusions" className="rounded-lg px-6 py-2.5 text-base font-kugile data-[state=active]:bg-card data-[state=active]:shadow-sm">
+                  Exclusions
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="itinerary">
+                <div className="flex flex-col gap-6">
+                  {pkg.detailed_itinerary.map((day, index) => (
+                    <div
+                      key={index}
+                      className="flex">
+                      <div className="flex-shrink-0 w-16 h-16 bg-lilac-600 text-white rounded-full flex items-center justify-center font-bold text-lg mr-4">
+                        {day.day}
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-xl font-semibold font-kugile text-foreground mb-2">
+                          {day.title}
+                        </h3>
+                        <ul className="flex flex-col gap-2">
+                          {day.activities.map((activity, actIndex) => (
+                            <li
+                              key={actIndex}
+                              className="flex items-start gap-2">
+                              <Check className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+                              <span className="text-foreground/80">{activity}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </TabsContent>
+
+              <TabsContent value="inclusions">
                 <div>
-                  <h3 className="text-xl font-bold font-kugile text-gray-900 mb-4 flex items-center space-x-2">
+                  <h3 className="text-xl font-bold font-kugile text-foreground mb-4 flex items-center gap-2">
                     <Check className="h-6 w-6 text-green-600" />
-                    <span>Inclusions</span>
+                    <span>What's Included</span>
                   </h3>
-                  <ul className="space-y-2">
+                  <ul className="flex flex-col gap-2">
                     {pkg.inclusions.map((item, index) => (
                       <li
                         key={index}
-                        className="flex items-start space-x-2">
+                        className="flex items-start gap-2">
                         <Check className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
-                        <span className="text-gray-700">{item}</span>
+                        <span className="text-foreground/80">{item}</span>
                       </li>
                     ))}
                   </ul>
                 </div>
+              </TabsContent>
 
+              <TabsContent value="exclusions">
                 <div>
-                  <h3 className="text-xl font-bold font-kugile text-gray-900 mb-4 flex items-center space-x-2">
+                  <h3 className="text-xl font-bold font-kugile text-foreground mb-4 flex items-center gap-2">
                     <X className="h-6 w-6 text-red-600" />
-                    <span>Exclusions</span>
+                    <span>What's Not Included</span>
                   </h3>
-                  <ul className="space-y-2">
+                  <ul className="flex flex-col gap-2">
                     {pkg.exclusions.map((item, index) => (
                       <li
                         key={index}
-                        className="flex items-start space-x-2">
+                        className="flex items-start gap-2">
                         <X className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
-                        <span className="text-gray-700">{item}</span>
+                        <span className="text-foreground/80">{item}</span>
                       </li>
                     ))}
                   </ul>
                 </div>
-              </div>
-            </div>
+              </TabsContent>
+            </Tabs>
 
-            <div className="border-t p-8 bg-gray-50">
+            <Separator />
+
+            {/* Reviews Section */}
+            <ReviewsSection packageId={id!} />
+
+            <Separator />
+
+            {/* CTA Section */}
+            <div className="p-8 bg-muted">
               <div className="text-center">
-                <h3 className="text-2xl font-bold font-kugile text-gray-900 mb-4">
+                <h3 className="text-2xl font-bold font-kugile text-foreground mb-4">
                   Ready to Book?
                 </h3>
-                <p className="text-gray-600 mb-6">
+                <p className="text-muted-foreground mb-6">
                   Start your journey with us today and create memories that last a lifetime
                 </p>
-                <button
+                <Button
                   onClick={handleBookNow}
-                  className="bg-lilac-600 hover:bg-lilac-700 text-white font-semibold px-8 py-4 rounded-xl transition inline-flex items-center space-x-2">
+                  className="bg-lilac-600 hover:bg-lilac-700 text-white font-semibold px-8 py-4 h-auto rounded-xl transition inline-flex items-center gap-2"
+                  size="lg">
                   <Users className="h-5 w-5" />
                   <span>Book Now - ₹{pkg.price_per_person.toLocaleString("en-IN")} per person</span>
-                </button>
+                </Button>
               </div>
             </div>
-          </div>
+          </Card>
         </Reveal>
       </div>
     </div>

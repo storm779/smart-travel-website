@@ -4,8 +4,11 @@ import { HelmetProvider } from "react-helmet-async";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ToastProvider } from "./contexts/ToastContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import ErrorBoundary from "./components/ErrorBoundary";
 import Navbar from "./components/Navbar";
+import AdminRoute from "./components/admin/AdminRoute";
+import AdminLayout from "./components/admin/AdminLayout";
 import Footer from "./components/Footer";
 import FooterMinimal from "./components/FooterMinimal";
 import SupportChatbot from "./components/SupportChatbot";
@@ -25,10 +28,30 @@ const MyBookings = lazy(() => import("./pages/MyBookings"));
 const About = lazy(() => import("./pages/About"));
 const Contact = lazy(() => import("./pages/Contact"));
 const ExploreMap = lazy(() => import("./pages/ExploreMap"));
+const Wishlist = lazy(() => import("./pages/Wishlist"));
+
+// Admin pages
+const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
+const AdminBookings = lazy(() => import("./pages/admin/AdminBookings"));
+const AdminPackages = lazy(() => import("./pages/admin/AdminPackages"));
+const AdminReviews = lazy(() => import("./pages/admin/AdminReviews"));
+const AdminContacts = lazy(() => import("./pages/admin/AdminContacts"));
 
 function AppFooter() {
   const location = useLocation();
+  if (location.pathname.startsWith("/admin")) return null;
   return location.pathname === "/" ? <Footer /> : <FooterMinimal />;
+}
+
+function AppExtras() {
+  const location = useLocation();
+  if (location.pathname.startsWith("/admin")) return null;
+  return (
+    <>
+      <SupportChatbot />
+      <PackageMapWidget />
+    </>
+  );
 }
 
 function App() {
@@ -38,6 +61,7 @@ function App() {
         <ThemeProvider>
           <AuthProvider>
             <ToastProvider>
+              <TooltipProvider>
           <Router>
             <div className="flex flex-col min-h-screen">
               <Navbar />
@@ -96,14 +120,25 @@ function App() {
                       path="/explore-map"
                       element={<ExploreMap />}
                     />
+                    <Route
+                      path="/wishlist"
+                      element={<Wishlist />}
+                    />
+                    <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
+                      <Route index element={<AdminDashboard />} />
+                      <Route path="bookings" element={<AdminBookings />} />
+                      <Route path="packages" element={<AdminPackages />} />
+                      <Route path="reviews" element={<AdminReviews />} />
+                      <Route path="contacts" element={<AdminContacts />} />
+                    </Route>
                   </Routes>
                 </Suspense>
               </main>
               <AppFooter />
-              <SupportChatbot />
-              <PackageMapWidget />
+              <AppExtras />
             </div>
           </Router>
+              </TooltipProvider>
             </ToastProvider>
           </AuthProvider>
         </ThemeProvider>

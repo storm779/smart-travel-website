@@ -1,110 +1,93 @@
-@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap");
+@import "tw-animate-css";
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --background: oklch(0.99 0.002 320);
+    --foreground: oklch(0.18 0.01 280);
+    --card: oklch(1 0 0);
+    --card-foreground: oklch(0.18 0.01 280);
+    --popover: oklch(1 0 0);
+    --popover-foreground: oklch(0.18 0.01 280);
+    --primary: oklch(0.52 0.17 320);
+    --primary-foreground: oklch(0.985 0 0);
+    --secondary: oklch(0.96 0.008 320);
+    --secondary-foreground: oklch(0.35 0.12 320);
+    --muted: oklch(0.96 0.003 300);
+    --muted-foreground: oklch(0.5 0.01 280);
+    --accent: oklch(0.94 0.02 320);
+    --accent-foreground: oklch(0.35 0.12 320);
+    --destructive: oklch(0.577 0.245 27.325);
+    --destructive-foreground: oklch(0.985 0 0);
+    --border: oklch(0.93 0.005 300);
+    --input: oklch(0.93 0.005 300);
+    --ring: oklch(0.52 0.17 320);
+    --radius: 0.625rem;
+    --chart-1: oklch(0.52 0.17 320);
+    --chart-2: oklch(0.65 0.15 320);
+    --chart-3: oklch(0.45 0.14 320);
+    --chart-4: oklch(0.75 0.1 320);
+    --chart-5: oklch(0.35 0.12 320);
+    --sidebar: oklch(0.985 0 0);
+    --sidebar-foreground: oklch(0.145 0 0);
+    --sidebar-primary: oklch(0.52 0.17 320);
+    --sidebar-primary-foreground: oklch(0.985 0 0);
+    --sidebar-accent: oklch(0.97 0.005 320);
+    --sidebar-accent-foreground: oklch(0.35 0.12 320);
+    --sidebar-border: oklch(0.922 0 0);
+    --sidebar-ring: oklch(0.52 0.17 320);
+  }
+
+  .dark {
+    --background: oklch(0.13 0.005 280);
+    --foreground: oklch(0.93 0 0);
+    --card: oklch(0.18 0.008 280);
+    --card-foreground: oklch(0.93 0 0);
+    --popover: oklch(0.18 0.008 280);
+    --popover-foreground: oklch(0.93 0 0);
+    --primary: oklch(0.68 0.16 320);
+    --primary-foreground: oklch(0.985 0 0);
+    --secondary: oklch(0.22 0.015 300);
+    --secondary-foreground: oklch(0.9 0 0);
+    --muted: oklch(0.22 0.008 280);
+    --muted-foreground: oklch(0.65 0 0);
+    --accent: oklch(0.22 0.015 300);
+    --accent-foreground: oklch(0.9 0 0);
+    --destructive: oklch(0.704 0.191 22.216);
+    --destructive-foreground: oklch(0.985 0 0);
+    --border: oklch(1 0 0 / 6%);
+    --input: oklch(1 0 0 / 10%);
+    --ring: oklch(0.68 0.16 320);
+    --chart-1: oklch(0.65 0.17 320);
+    --chart-2: oklch(0.55 0.15 320);
+    --chart-3: oklch(0.45 0.14 320);
+    --chart-4: oklch(0.75 0.1 320);
+    --chart-5: oklch(0.35 0.12 320);
+    --sidebar: oklch(0.205 0 0);
+    --sidebar-foreground: oklch(0.985 0 0);
+    --sidebar-primary: oklch(0.65 0.17 320);
+    --sidebar-primary-foreground: oklch(0.985 0 0);
+    --sidebar-accent: oklch(0.269 0.01 320);
+    --sidebar-accent-foreground: oklch(0.985 0 0);
+    --sidebar-border: oklch(1 0 0 / 10%);
+    --sidebar-ring: oklch(0.65 0.17 320);
+  }
+
   html {
     transition: background-color 0.3s ease, color 0.3s ease;
   }
-}
 
-/* ============================================
-   DARK MODE — Global overrides
-   Using broad selectors to catch bg-white / bg-gray-50
-   across all pages without per-component fragility.
-   ============================================ */
-html.dark body {
-  background-color: #0f172a;
-  color: #e2e8f0;
-}
+  * {
+    border-color: var(--border);
+  }
 
-/* Any element with .bg-white inside main becomes dark */
-html.dark main .bg-white {
-  background-color: #0f172a !important;
-}
+  body {
+    @apply bg-background text-foreground;
+  }
 
-/* Elevated surfaces (cards, panels, modals) */
-html.dark main .bg-white.rounded-xl,
-html.dark main .bg-white.rounded-2xl,
-html.dark main .bg-white.rounded-3xl,
-html.dark main .bg-white.rounded-\[2rem\],
-html.dark main .bg-white.rounded-\[2\.5rem\],
-html.dark main .bg-white.shadow-md,
-html.dark main .bg-white.shadow-lg,
-html.dark main .bg-white.shadow-xl,
-html.dark main .bg-white.shadow-2xl {
-  background-color: #1e293b !important;
-}
-
-/* Gray backgrounds → slate */
-html.dark main .bg-gray-50,
-html.dark main .bg-gray-100 {
-  background-color: #1e293b !important;
-}
-
-html.dark main .bg-lilac-50 {
-  background-color: rgba(124, 58, 237, 0.08) !important;
-}
-
-html.dark main .bg-green-50 {
-  background-color: rgba(34, 197, 94, 0.08) !important;
-}
-
-html.dark main .bg-blue-50 {
-  background-color: rgba(59, 130, 246, 0.08) !important;
-}
-
-/* Text color overrides for dark mode */
-html.dark main .text-gray-900 {
-  color: #f1f5f9 !important;
-}
-
-html.dark main .text-gray-800 {
-  color: #e2e8f0 !important;
-}
-
-html.dark main .text-gray-700 {
-  color: #cbd5e1 !important;
-}
-
-html.dark main .text-gray-600 {
-  color: #94a3b8 !important;
-}
-
-/* Border overrides */
-html.dark main .border-gray-100,
-html.dark main .border-gray-200 {
-  border-color: #334155 !important;
-}
-
-html.dark main .border-gray-300 {
-  border-color: #475569 !important;
-}
-
-/* Form inputs */
-html.dark input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
-html.dark select,
-html.dark textarea {
-  background-color: #1e293b !important;
-  color: #e2e8f0 !important;
-  border-color: #334155 !important;
-}
-
-html.dark input::placeholder,
-html.dark textarea::placeholder {
-  color: #64748b !important;
-}
-
-/* Gradient text stays visible in dark mode */
-html.dark .bg-clip-text {
-  -webkit-text-fill-color: transparent;
-}
-
-/* Section-level backgrounds */
-html.dark section.bg-white,
-html.dark section.bg-gray-50 {
-  background-color: #0f172a !important;
 }
 
 /* ============================================
@@ -134,7 +117,7 @@ html.dark section.bg-gray-50 {
   background-clip: padding-box !important;
 }
 .marker-cluster-small {
-  background-color: rgba(124, 58, 237, 0.25) !important;
+  background-color: oklch(0.52 0.17 320 / 25%) !important;
   border-radius: 50% !important;
 }
 .marker-cluster-small div {
@@ -143,7 +126,7 @@ html.dark section.bg-gray-50 {
   margin-left: 5px !important;
   margin-top: 5px !important;
   border-radius: 50% !important;
-  background-color: rgba(124, 58, 237, 0.75) !important;
+  background-color: oklch(0.52 0.17 320 / 75%) !important;
   color: white !important;
   font-weight: 700;
   font-size: 13px;
@@ -154,7 +137,7 @@ html.dark section.bg-gray-50 {
   text-align: center;
 }
 .marker-cluster-medium {
-  background-color: rgba(124, 58, 237, 0.3) !important;
+  background-color: oklch(0.52 0.17 320 / 30%) !important;
   border-radius: 50% !important;
 }
 .marker-cluster-medium div {
@@ -163,7 +146,7 @@ html.dark section.bg-gray-50 {
   margin-left: 7px !important;
   margin-top: 7px !important;
   border-radius: 50% !important;
-  background-color: rgba(124, 58, 237, 0.8) !important;
+  background-color: oklch(0.52 0.17 320 / 80%) !important;
   color: white !important;
   font-weight: 700;
   font-size: 14px;
@@ -174,7 +157,7 @@ html.dark section.bg-gray-50 {
   text-align: center;
 }
 .marker-cluster-large {
-  background-color: rgba(124, 58, 237, 0.35) !important;
+  background-color: oklch(0.52 0.17 320 / 35%) !important;
   border-radius: 50% !important;
 }
 .marker-cluster-large div {
@@ -183,7 +166,7 @@ html.dark section.bg-gray-50 {
   margin-left: 10px !important;
   margin-top: 10px !important;
   border-radius: 50% !important;
-  background-color: rgba(124, 58, 237, 0.85) !important;
+  background-color: oklch(0.52 0.17 320 / 85%) !important;
   color: white !important;
   font-weight: 700;
   font-size: 15px;
@@ -218,24 +201,20 @@ html.dark section.bg-gray-50 {
 }
 
 html.dark .leaflet-popup-content-wrapper {
-  background: #1e293b !important;
-  color: #e2e8f0 !important;
+  background: oklch(0.205 0 0) !important;
+  color: oklch(0.985 0 0) !important;
 }
 html.dark .leaflet-popup-tip {
-  background: #1e293b !important;
-}
-html.dark .leaflet-popup-content h4,
-html.dark .leaflet-popup-content .font-bold {
-  color: #f1f5f9 !important;
+  background: oklch(0.205 0 0) !important;
 }
 
 html.dark .leaflet-control-zoom a {
-  background-color: #1e293b !important;
-  color: #e2e8f0 !important;
-  border-color: #334155 !important;
+  background-color: oklch(0.205 0 0) !important;
+  color: oklch(0.985 0 0) !important;
+  border-color: oklch(1 0 0 / 10%) !important;
 }
 html.dark .leaflet-control-zoom a:hover {
-  background-color: #334155 !important;
+  background-color: oklch(0.269 0 0) !important;
 }
 
 /* ============================================

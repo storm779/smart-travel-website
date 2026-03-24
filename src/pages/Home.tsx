@@ -1,11 +1,18 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import { ArrowRight, MapPin, Plus, Minus, Star, Quote, Sparkles, Building2, Fingerprint, Headphones } from "lucide-react";
+import { ArrowRight, MapPin, Star, Quote, Sparkles, Building2, Fingerprint, Headphones } from "lucide-react";
 import { motion } from "framer-motion";
 import { supabase, Package as PackageType } from "../lib/supabase";
 import { CountUp } from "../components/CountUp";
 import { Reveal } from "../components/Reveal";
+import { ExpandCards } from "../components/ExpandCards";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
+import { Skeleton } from "@/components/ui/skeleton";
 
 // --- Animation variants ---
 const fadeUp = {
@@ -24,7 +31,6 @@ const stagger = {
 export default function Home() {
   const [popularPackages, setPopularPackages] = useState<PackageType[]>([]);
   const [loading, setLoading] = useState(true);
-  const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   useEffect(() => {
     loadPopularPackages();
@@ -92,7 +98,7 @@ export default function Home() {
   ];
 
   return (
-    <div className="min-h-screen bg-white dark:bg-slate-950 text-gray-900 dark:text-gray-100 overflow-hidden">
+    <div className="min-h-screen bg-background text-foreground overflow-hidden">
       <Helmet>
         <title>Travellah — AI-Powered Travel Planning</title>
         <meta name="description" content="Plan your perfect trip with AI-powered itineraries. Explore curated travel packages across India and worldwide." />
@@ -138,17 +144,17 @@ export default function Home() {
               Personalized itineraries crafted by AI. From hidden gems to iconic landmarks — your perfect trip, planned in seconds.
             </motion.p>
             <motion.div variants={fadeUp} custom={3} className="flex flex-wrap gap-4">
-              <Link
-                to="/smart-planner"
-                className="group flex items-center gap-3 bg-white text-gray-900 px-8 py-4 rounded-full font-medium text-sm hover:bg-lilac-100 transition-all duration-300 shadow-lg hover:shadow-xl">
-                Plan Your Trip
-                <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
-              </Link>
-              <Link
-                to="/packages"
-                className="flex items-center gap-3 border border-white/40 text-white px-8 py-4 rounded-full font-medium text-sm hover:bg-white/10 backdrop-blur-sm transition-all duration-300">
-                Browse Packages
-              </Link>
+              <Button asChild className="rounded-full px-8 py-4 h-auto bg-white text-foreground hover:bg-lilac-100 shadow-lg hover:shadow-xl font-medium text-sm">
+                <Link to="/smart-planner" className="flex items-center gap-3">
+                  Plan Your Trip
+                  <ArrowRight size={16} className="group-hover/button:translate-x-1 transition-transform" />
+                </Link>
+              </Button>
+              <Button asChild variant="outline" className="rounded-full px-8 py-4 h-auto border-white/40 text-white bg-transparent hover:bg-white/10 backdrop-blur-sm font-medium text-sm">
+                <Link to="/packages" className="flex items-center gap-3">
+                  Browse Packages
+                </Link>
+              </Button>
             </motion.div>
           </motion.div>
 
@@ -166,41 +172,60 @@ export default function Home() {
 
       {/* ===================== STATS BAR ===================== */}
       <section className="relative -mt-16 z-20 px-6 sm:px-10 lg:px-16 max-w-5xl mx-auto">
-        <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl dark:shadow-slate-900/50 border border-gray-100 dark:border-slate-800 px-8 py-8 grid grid-cols-3 divide-x divide-gray-100 dark:divide-slate-800">
-          {stats.map((stat, i) => (
-            <Reveal key={i} delay={i * 150}>
-              <div className="text-center px-4">
-                <p className="text-3xl md:text-4xl font-kugile text-gray-900 dark:text-white mb-1">
-                  {stat.isDecimal ? (
-                    <span>{stat.value}{stat.suffix}</span>
-                  ) : (
-                    <CountUp end={stat.value} suffix={stat.suffix} />
-                  )}
-                </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-[0.15em] font-medium">
-                  {stat.label}
-                </p>
-              </div>
-            </Reveal>
-          ))}
+        <Card className="rounded-2xl shadow-xl border-border px-8 py-8 ring-0">
+          <CardContent className="grid grid-cols-3 divide-x divide-border p-0">
+            {stats.map((stat, i) => (
+              <Reveal key={i} delay={i * 150}>
+                <div className="text-center px-4">
+                  <p className="text-3xl md:text-4xl font-kugile text-foreground mb-1">
+                    {stat.isDecimal ? (
+                      <span>{stat.value}{stat.suffix}</span>
+                    ) : (
+                      <CountUp end={stat.value} suffix={stat.suffix} />
+                    )}
+                  </p>
+                  <p className="text-xs text-muted-foreground uppercase tracking-[0.15em] font-medium">
+                    {stat.label}
+                  </p>
+                </div>
+              </Reveal>
+            ))}
+          </CardContent>
+        </Card>
+      </section>
+
+      {/* ===================== POPULAR DESTINATIONS ===================== */}
+      <section className="py-28 md:py-36 px-6 sm:px-10 lg:px-16 bg-muted/50">
+        <div className="max-w-7xl mx-auto">
+          <Reveal>
+            <p className="text-xs uppercase tracking-[0.2em] text-lilac-600 dark:text-lilac-400 font-semibold mb-4">
+              Popular Destinations
+            </p>
+            <h2 className="text-3xl md:text-5xl font-kugile italic text-foreground mb-14 leading-tight">
+              Where will you go next?
+            </h2>
+          </Reveal>
+          <Reveal delay={200}>
+            <ExpandCards />
+          </Reveal>
         </div>
       </section>
 
       {/* ===================== ABOUT ===================== */}
-      <section className="py-28 md:py-36 px-6 sm:px-10 lg:px-16 bg-white dark:bg-slate-950">
+      <section className="py-28 md:py-36 px-6 sm:px-10 lg:px-16 bg-background">
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
           <Reveal className="lg:col-span-7">
             <p className="text-xs uppercase tracking-[0.2em] text-lilac-600 dark:text-lilac-400 font-semibold mb-6">
               Why Travellah
             </p>
-            <h2 className="text-3xl md:text-5xl font-kugile italic leading-[1.2] text-gray-900 dark:text-white mb-8">
+            <h2 className="text-3xl md:text-5xl font-kugile italic leading-[1.2] text-foreground mb-8">
               We don't just plan trips.{" "}
               <span className="text-lilac-600 dark:text-lilac-400 not-italic">
                 We craft experiences
               </span>{" "}
               you'll remember forever.
             </h2>
-            <p className="text-gray-500 dark:text-gray-400 text-lg leading-relaxed max-w-xl">
+            <p className="text-muted-foreground text-lg leading-relaxed max-w-xl">
               Our AI understands your travel personality — adventurer, culture seeker, beach lover, foodie — and builds itineraries that feel hand-curated by a local expert.
             </p>
           </Reveal>
@@ -217,13 +242,16 @@ export default function Home() {
                   whileHover={{ y: -4, scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   transition={{ type: "spring", stiffness: 400, damping: 20 }}
-                  className={`bg-gray-50 dark:bg-slate-900 border border-gray-100 dark:border-slate-800 rounded-2xl p-6 hover:shadow-xl ${item.border} ${item.shadow} transition-[border-color,box-shadow] duration-300 group cursor-default`}
                 >
-                  <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${item.accent} flex items-center justify-center mb-4 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3`}>
-                    <item.icon className={`h-5 w-5 ${item.iconColor} transition-transform duration-300 group-hover:scale-110`} />
-                  </div>
-                  <h4 className="font-semibold text-gray-900 dark:text-white text-sm mb-1 transition-colors duration-300">{item.title}</h4>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">{item.desc}</p>
+                  <Card className={`rounded-2xl p-6 ring-0 border border-border bg-muted/50 hover:shadow-xl ${item.border} ${item.shadow} transition-[border-color,box-shadow] duration-300 group cursor-default`}>
+                    <CardContent className="p-0">
+                      <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${item.accent} flex items-center justify-center mb-4 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3`}>
+                        <item.icon className={`h-5 w-5 ${item.iconColor} transition-transform duration-300 group-hover:scale-110`} />
+                      </div>
+                      <h4 className="font-semibold text-foreground text-sm mb-1 transition-colors duration-300">{item.title}</h4>
+                      <p className="text-xs text-muted-foreground leading-relaxed">{item.desc}</p>
+                    </CardContent>
+                  </Card>
                 </motion.div>
               </Reveal>
             ))}
@@ -232,16 +260,16 @@ export default function Home() {
       </section>
 
       {/* ===================== SERVICES ===================== */}
-      <section className="py-28 px-6 sm:px-10 lg:px-16 bg-gray-50 dark:bg-slate-900/50">
+      <section className="py-28 px-6 sm:px-10 lg:px-16 bg-muted/50">
         <div className="max-w-7xl mx-auto">
           <Reveal>
             <p className="text-xs uppercase tracking-[0.2em] text-lilac-600 dark:text-lilac-400 font-semibold mb-4">
               Our Services
             </p>
-            <h2 className="text-3xl md:text-5xl font-kugile italic text-gray-900 dark:text-white mb-4 leading-tight">
+            <h2 className="text-3xl md:text-5xl font-kugile italic text-foreground mb-4 leading-tight">
               Explore endless possibilities
             </h2>
-            <p className="text-gray-500 dark:text-gray-400 max-w-lg text-lg leading-relaxed mb-14">
+            <p className="text-muted-foreground max-w-lg text-lg leading-relaxed mb-14">
               From curated packages to AI-powered custom planning — every kind of trip, covered.
             </p>
           </Reveal>
@@ -257,7 +285,7 @@ export default function Home() {
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
                 <div className="absolute bottom-0 left-0 right-0 p-8 md:p-10">
-                  <span className="text-lilac-300 text-xs uppercase tracking-[0.2em] font-semibold mb-2 block">Featured</span>
+                  <Badge className="bg-lilac-300/20 text-lilac-300 border-lilac-300/30 text-xs uppercase tracking-[0.2em] font-semibold mb-2 rounded-full h-auto px-3 py-1">Featured</Badge>
                   <h3 className="text-2xl md:text-3xl font-kugile italic text-white mb-2">
                     AI-Powered Planning
                   </h3>
@@ -292,7 +320,7 @@ export default function Home() {
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
                     <div className="absolute bottom-0 left-0 right-0 p-8">
-                      <span className="text-lilac-300 text-xs uppercase tracking-[0.2em] font-semibold mb-1.5 block">{card.label}</span>
+                      <Badge className="bg-lilac-300/20 text-lilac-300 border-lilac-300/30 text-xs uppercase tracking-[0.2em] font-semibold mb-1.5 rounded-full h-auto px-3 py-1">{card.label}</Badge>
                       <h3 className="text-xl font-kugile italic text-white mb-1">{card.title}</h3>
                       <p className="text-white/50 text-xs opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-500">
                         {card.desc}
@@ -307,7 +335,7 @@ export default function Home() {
       </section>
 
       {/* ===================== FEATURED PACKAGES ===================== */}
-      <section className="py-28 px-6 sm:px-10 lg:px-16 bg-white dark:bg-slate-950">
+      <section className="py-28 px-6 sm:px-10 lg:px-16 bg-background">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-14 gap-6">
             <Reveal>
@@ -315,25 +343,25 @@ export default function Home() {
                 <p className="text-xs uppercase tracking-[0.2em] text-lilac-600 dark:text-lilac-400 font-semibold mb-4">
                   Top Rated
                 </p>
-                <h2 className="text-3xl md:text-5xl font-kugile italic text-gray-900 dark:text-white leading-tight">
+                <h2 className="text-3xl md:text-5xl font-kugile italic text-foreground leading-tight">
                   Handpicked packages
                 </h2>
               </div>
             </Reveal>
             <Reveal delay={200}>
-              <Link
-                to="/packages"
-                className="group flex items-center gap-2 text-sm font-medium text-lilac-600 dark:text-lilac-400 hover:text-lilac-700 dark:hover:text-lilac-300 transition-colors">
-                View all packages
-                <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
-              </Link>
+              <Button asChild variant="link" className="text-lilac-600 dark:text-lilac-400 hover:text-lilac-700 dark:hover:text-lilac-300 p-0 h-auto font-medium text-sm">
+                <Link to="/packages" className="flex items-center gap-2">
+                  View all packages
+                  <ArrowRight size={14} className="group-hover/button:translate-x-1 transition-transform" />
+                </Link>
+              </Button>
             </Reveal>
           </div>
 
           {loading ? (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="h-[480px] bg-gray-100 dark:bg-slate-800 rounded-3xl animate-pulse" />
+                <Skeleton key={i} className="h-[480px] rounded-3xl" />
               ))}
             </div>
           ) : (
@@ -353,12 +381,12 @@ export default function Home() {
 
                     {/* Top badges */}
                     <div className="absolute top-5 left-5 right-5 flex justify-between items-start">
-                      <span className="bg-white/15 backdrop-blur-md text-white text-xs font-medium px-4 py-1.5 rounded-full border border-white/20">
+                      <Badge className="bg-white/15 backdrop-blur-md text-white text-xs font-medium px-4 py-1.5 rounded-full border border-white/20 h-auto">
                         {pkg.duration_days}D / {pkg.duration_nights}N
-                      </span>
-                      <span className="bg-white/15 backdrop-blur-md text-white text-xs font-medium px-3 py-1.5 rounded-full border border-white/20 flex items-center gap-1">
+                      </Badge>
+                      <Badge className="bg-white/15 backdrop-blur-md text-white text-xs font-medium px-3 py-1.5 rounded-full border border-white/20 h-auto flex items-center gap-1">
                         <Star size={10} fill="currentColor" /> {pkg.rating}
-                      </span>
+                      </Badge>
                     </div>
 
                     {/* Bottom content */}
@@ -377,9 +405,9 @@ export default function Home() {
                           ₹{pkg.price_per_person.toLocaleString()}
                           <span className="text-white/40 text-xs font-normal ml-1">/ person</span>
                         </span>
-                        <span className="text-white/60 text-xs border border-white/20 px-4 py-2 rounded-full group-hover:bg-white group-hover:text-gray-900 transition-all duration-300">
+                        <Badge className="text-white/60 text-xs border border-white/20 px-4 py-2 rounded-full bg-transparent group-hover:bg-white group-hover:text-foreground transition-all duration-300 h-auto">
                           View details
-                        </span>
+                        </Badge>
                       </div>
                     </div>
                   </Link>
@@ -391,13 +419,13 @@ export default function Home() {
       </section>
 
       {/* ===================== TESTIMONIALS ===================== */}
-      <section className="py-28 px-6 sm:px-10 lg:px-16 bg-gray-50 dark:bg-slate-900/50">
+      <section className="py-28 px-6 sm:px-10 lg:px-16 bg-muted/50">
         <div className="max-w-7xl mx-auto">
           <Reveal>
             <p className="text-xs uppercase tracking-[0.2em] text-lilac-600 dark:text-lilac-400 font-semibold mb-4">
               Testimonials
             </p>
-            <h2 className="text-3xl md:text-5xl font-kugile italic text-gray-900 dark:text-white mb-14 leading-tight">
+            <h2 className="text-3xl md:text-5xl font-kugile italic text-foreground mb-14 leading-tight">
               Loved by travelers
             </h2>
           </Reveal>
@@ -405,23 +433,26 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {testimonials.map((t, i) => (
               <Reveal key={i} delay={i * 150}>
-                <div className="bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 rounded-2xl p-8 hover:shadow-lg dark:hover:shadow-slate-900/50 hover:border-lilac-200 dark:hover:border-lilac-800 transition-all duration-300 h-full flex flex-col">
-                  <Quote size={24} className="text-lilac-300 dark:text-lilac-700 mb-4 flex-shrink-0" />
-                  <p className="text-gray-600 dark:text-gray-300 leading-relaxed text-sm mb-8 flex-grow">
-                    {t.text}
-                  </p>
-                  <div className="flex items-center gap-3 flex-shrink-0">
-                    <img
-                      src={t.image}
-                      alt={t.name}
-                      className="w-10 h-10 rounded-full object-cover ring-2 ring-lilac-100 dark:ring-lilac-900"
-                    />
-                    <div>
-                      <p className="font-semibold text-gray-900 dark:text-white text-sm">{t.name}</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">{t.role}</p>
+                <Card className="rounded-2xl ring-0 border border-border hover:shadow-lg hover:border-lilac-200 dark:hover:border-lilac-800 transition-all duration-300 h-full flex flex-col">
+                  <CardContent className="p-8 flex flex-col h-full">
+                    <Quote size={24} className="text-lilac-300 dark:text-lilac-700 mb-4 flex-shrink-0" />
+                    <p className="text-muted-foreground leading-relaxed text-sm mb-8 flex-grow">
+                      {t.text}
+                    </p>
+                    <Separator className="mb-4" />
+                    <div className="flex items-center gap-3 flex-shrink-0">
+                      <img
+                        src={t.image}
+                        alt={t.name}
+                        className="w-10 h-10 rounded-full object-cover ring-2 ring-lilac-100 dark:ring-lilac-900"
+                      />
+                      <div>
+                        <p className="font-semibold text-foreground text-sm">{t.name}</p>
+                        <p className="text-xs text-muted-foreground">{t.role}</p>
+                      </div>
                     </div>
-                  </div>
-                </div>
+                  </CardContent>
+                </Card>
               </Reveal>
             ))}
           </div>
@@ -429,52 +460,37 @@ export default function Home() {
       </section>
 
       {/* ===================== FAQ ===================== */}
-      <section className="py-28 px-6 sm:px-10 lg:px-16 bg-white dark:bg-slate-950">
+      <section className="py-28 px-6 sm:px-10 lg:px-16 bg-background">
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-16">
           <Reveal className="lg:col-span-5">
             <p className="text-xs uppercase tracking-[0.2em] text-lilac-600 dark:text-lilac-400 font-semibold mb-4">
               FAQ
             </p>
-            <h2 className="text-3xl md:text-5xl font-kugile italic text-gray-900 dark:text-white mb-6 leading-tight">
+            <h2 className="text-3xl md:text-5xl font-kugile italic text-foreground mb-6 leading-tight">
               Got questions?
             </h2>
-            <p className="text-gray-500 dark:text-gray-400 text-lg leading-relaxed">
+            <p className="text-muted-foreground text-lg leading-relaxed">
               Everything you need to know about planning and booking your trip with Travellah.
             </p>
           </Reveal>
 
-          <div className="lg:col-span-7 space-y-3">
-            {faqs.map((faq, index) => (
-              <div
-                key={index}
-                className={`rounded-2xl border transition-all duration-300 ${
-                  openFaq === index
-                    ? "bg-lilac-50 dark:bg-lilac-950/30 border-lilac-200 dark:border-lilac-800"
-                    : "bg-white dark:bg-slate-900 border-gray-100 dark:border-slate-800 hover:border-gray-200 dark:hover:border-slate-700"
-                }`}>
-                <button
-                  className="w-full px-6 py-5 text-left flex items-center justify-between focus:outline-none"
-                  onClick={() => setOpenFaq(openFaq === index ? null : index)}>
-                  <span className="font-medium text-gray-900 dark:text-white text-[15px] pr-4">
+          <div className="lg:col-span-7">
+            <Accordion type="single" collapsible className="flex flex-col gap-3">
+              {faqs.map((faq, index) => (
+                <AccordionItem
+                  key={index}
+                  value={`faq-${index}`}
+                  className="rounded-2xl border border-border bg-card px-6 data-[state=open]:bg-lilac-50 dark:data-[state=open]:bg-lilac-950/30 data-[state=open]:border-lilac-200 dark:data-[state=open]:border-lilac-800 hover:border-muted-foreground/20 transition-all duration-300"
+                >
+                  <AccordionTrigger className="py-5 text-[15px] font-medium text-foreground hover:no-underline">
                     {faq.question}
-                  </span>
-                  <span className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
-                    openFaq === index
-                      ? "bg-lilac-600 text-white"
-                      : "bg-gray-100 dark:bg-slate-800 text-gray-500 dark:text-gray-400"
-                  }`}>
-                    {openFaq === index ? <Minus size={14} /> : <Plus size={14} />}
-                  </span>
-                </button>
-                <div className={`overflow-hidden transition-all duration-300 ease-in-out ${
-                  openFaq === index ? "max-h-48 pb-6 opacity-100" : "max-h-0 opacity-0"
-                }`}>
-                  <p className="px-6 text-gray-500 dark:text-gray-400 text-sm leading-relaxed">
+                  </AccordionTrigger>
+                  <AccordionContent className="text-muted-foreground text-sm leading-relaxed pb-6">
                     {faq.answer}
-                  </p>
-                </div>
-              </div>
-            ))}
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
           </div>
         </div>
       </section>
@@ -501,18 +517,18 @@ export default function Home() {
                   Let our AI craft a personalized itinerary that matches your budget, interests, and travel style — in seconds, not hours.
                 </p>
                 <div className="flex flex-wrap gap-4">
-                  <Link
-                    to="/smart-planner"
-                    className="group flex items-center gap-2 bg-white text-gray-900 px-8 py-3.5 rounded-full font-medium text-sm hover:bg-lilac-100 transition-all duration-300">
-                    Plan My Trip
-                    <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
-                  </Link>
-                  <Link
-                    to="/explore-map"
-                    className="flex items-center gap-2 border border-white/30 text-white px-8 py-3.5 rounded-full text-sm font-medium hover:bg-white/10 transition-all duration-300">
-                    <MapPin size={14} />
-                    Explore Map
-                  </Link>
+                  <Button asChild className="rounded-full px-8 py-3.5 h-auto bg-white text-foreground hover:bg-lilac-100 font-medium text-sm">
+                    <Link to="/smart-planner" className="flex items-center gap-2">
+                      Plan My Trip
+                      <ArrowRight size={14} className="group-hover/button:translate-x-1 transition-transform" />
+                    </Link>
+                  </Button>
+                  <Button asChild variant="outline" className="rounded-full px-8 py-3.5 h-auto border-white/30 text-white bg-transparent hover:bg-white/10 font-medium text-sm">
+                    <Link to="/explore-map" className="flex items-center gap-2">
+                      <MapPin size={14} />
+                      Explore Map
+                    </Link>
+                  </Button>
                 </div>
               </Reveal>
             </div>

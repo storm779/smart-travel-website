@@ -47,10 +47,14 @@ export interface Booking {
   contact_email: string;
   contact_phone: string;
   total_price: number;
-  payment_status: 'pending' | 'completed' | 'failed';
+  payment_status: 'pending' | 'completed' | 'failed' | 'refunded';
   payment_method?: string;
   booking_status: 'confirmed' | 'pending' | 'cancelled';
   booking_reference: string;
+  razorpay_order_id?: string;
+  razorpay_payment_id?: string;
+  razorpay_signature?: string;
+  payment_amount_paise?: number;
   created_at: string;
 }
 
@@ -70,6 +74,21 @@ export interface Profile {
   full_name?: string;
   phone?: string;
   city?: string;
+  role?: 'user' | 'admin';
   created_at: string;
   updated_at: string;
+}
+
+export interface Review {
+  id: string;
+  user_id: string;
+  package_id: string;
+  booking_id?: string;
+  rating: number;
+  title?: string;
+  comment?: string;
+  is_verified_purchase: boolean;
+  created_at: string;
+  updated_at: string;
+  profiles?: { full_name: string };
 }

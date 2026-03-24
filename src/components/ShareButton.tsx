@@ -1,5 +1,13 @@
 import { useState } from "react";
 import { Share2, Link2, Check } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 
 interface ShareButtonProps {
   title: string;
@@ -9,7 +17,7 @@ interface ShareButtonProps {
 
 export default function ShareButton({ title, text, className = "" }: ShareButtonProps) {
   const [copied, setCopied] = useState(false);
-  const [showMenu, setShowMenu] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const url = window.location.href;
 
@@ -21,7 +29,7 @@ export default function ShareButton({ title, text, className = "" }: ShareButton
         // User cancelled or error
       }
     } else {
-      setShowMenu(!showMenu);
+      setMenuOpen(!menuOpen);
     }
   };
 
@@ -29,6 +37,7 @@ export default function ShareButton({ title, text, className = "" }: ShareButton
     await navigator.clipboard.writeText(url);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+    setMenuOpen(false);
   };
 
   const shareToWhatsApp = () => {
@@ -36,7 +45,7 @@ export default function ShareButton({ title, text, className = "" }: ShareButton
       `https://wa.me/?text=${encodeURIComponent(`${title}\n${text}\n${url}`)}`,
       "_blank"
     );
-    setShowMenu(false);
+    setMenuOpen(false);
   };
 
   const shareToTwitter = () => {
@@ -44,35 +53,46 @@ export default function ShareButton({ title, text, className = "" }: ShareButton
       `https://twitter.com/intent/tweet?text=${encodeURIComponent(`${title} - ${text}`)}&url=${encodeURIComponent(url)}`,
       "_blank"
     );
-    setShowMenu(false);
+    setMenuOpen(false);
   };
 
-  return (
-    <div className={`relative ${className}`}>
-      <button
-        onClick={handleNativeShare}
-        className="flex items-center gap-2 px-5 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl transition font-medium text-sm">
-        <Share2 className="h-4 w-4" />
-        Share
-      </button>
+  // If native share is available, just use a simple button
+  if (navigator.share) {
+    return (
+      <div className={className}>
+        <Button
+          onClick={handleNativeShare}
+          variant="secondary"
+          className="gap-2 rounded-xl font-medium text-sm">
+          <Share2 className="h-4 w-4" />
+          Share
+        </Button>
+      </div>
+    );
+  }
 
-      {showMenu && (
-        <div className="absolute bottom-full mb-2 right-0 bg-white rounded-2xl shadow-xl border border-gray-100 p-2 min-w-[180px] z-50 animate-fade-in">
-          <button
-            onClick={shareToWhatsApp}
-            className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 rounded-xl transition text-sm text-gray-700">
-            <span className="text-lg">💬</span>
+  return (
+    <div className={className}>
+      <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="secondary"
+            className="gap-2 rounded-xl font-medium text-sm">
+            <Share2 className="h-4 w-4" />
+            Share
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" side="top" sideOffset={8} className="min-w-[180px] rounded-2xl">
+          <DropdownMenuItem onClick={shareToWhatsApp} className="gap-3 px-4 py-3 rounded-xl cursor-pointer">
+            <span className="text-lg">&#x1F4AC;</span>
             WhatsApp
-          </button>
-          <button
-            onClick={shareToTwitter}
-            className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 rounded-xl transition text-sm text-gray-700">
-            <span className="text-lg">𝕏</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={shareToTwitter} className="gap-3 px-4 py-3 rounded-xl cursor-pointer">
+            <span className="text-lg">{"\uD835\uDD4F"}</span>
             Twitter / X
-          </button>
-          <button
-            onClick={copyLink}
-            className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 rounded-xl transition text-sm text-gray-700">
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={copyLink} className="gap-3 px-4 py-3 rounded-xl cursor-pointer">
             {copied ? (
               <>
                 <Check className="h-4 w-4 text-green-500" />
@@ -84,9 +104,9 @@ export default function ShareButton({ title, text, className = "" }: ShareButton
                 Copy Link
               </>
             )}
-          </button>
-        </div>
-      )}
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   );
 }

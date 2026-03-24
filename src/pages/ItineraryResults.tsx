@@ -28,6 +28,17 @@ import { Reveal } from "../components/Reveal";
 import { Helmet } from "react-helmet-async";
 import ShareButton from "../components/ShareButton";
 import ItineraryMapView from "../components/ItineraryMapView";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Separator } from "@/components/ui/separator";
+import {
+  Accordion,
+  AccordionItem,
+  AccordionTrigger,
+  AccordionContent,
+} from "@/components/ui/accordion";
 
 interface DayMeals {
   breakfast?: string;
@@ -136,10 +147,6 @@ export default function ItineraryResults() {
     });
   };
 
-  const toggleDay = (dayNumber: number) => {
-    setExpandedDay(expandedDay === dayNumber ? null : dayNumber);
-  };
-
   const getRecommendedIndex = () => {
     return getUserSelectedTierIndex();
   };
@@ -162,34 +169,43 @@ export default function ItineraryResults() {
     return "ECONOMIC";
   };
 
+  const getTierTabValue = (type: string) => {
+    if (type === "luxury") return "luxury";
+    if (type === "middle_luxury") return "mid-luxury";
+    return "economic";
+  };
+
   if (error) {
     return (
-      <div className="min-h-screen bg-lilac-50 pt-28 pb-16">
+      <div className="min-h-screen bg-background pt-28 pb-16">
         <div className="max-w-xl mx-auto px-4 text-center py-20">
-          <div className="bg-white rounded-3xl shadow-xl p-10">
-            <div className="bg-red-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
-              <X className="h-8 w-8 text-red-500" />
-            </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-3 font-kugile">Generation Failed</h2>
-            <p className="text-gray-500 mb-6 text-sm">{error}</p>
-            <div className="flex gap-3 justify-center">
-              <button
-                onClick={() => {
-                  setLoading(true);
-                  setError(null);
-                  setLoadingStep(0);
-                  generateItineraries();
-                }}
-                className="px-6 py-3 bg-lilac-600 hover:bg-lilac-700 text-white rounded-xl font-medium text-sm transition">
-                Try Again
-              </button>
-              <button
-                onClick={() => navigate("/smart-planner")}
-                className="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium text-sm transition">
-                Back to Planner
-              </button>
-            </div>
-          </div>
+          <Card className="rounded-3xl shadow-xl">
+            <CardContent className="p-10">
+              <div className="bg-red-100 dark:bg-red-900/30 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
+                <X className="h-8 w-8 text-red-500" />
+              </div>
+              <CardTitle className="text-2xl font-bold font-kugile mb-3">Generation Failed</CardTitle>
+              <CardDescription className="mb-6 text-sm">{error}</CardDescription>
+              <div className="flex gap-3 justify-center">
+                <Button
+                  onClick={() => {
+                    setLoading(true);
+                    setError(null);
+                    setLoadingStep(0);
+                    generateItineraries();
+                  }}
+                  className="bg-lilac-600 hover:bg-lilac-700 text-white rounded-xl">
+                  Try Again
+                </Button>
+                <Button
+                  onClick={() => navigate("/smart-planner")}
+                  variant="secondary"
+                  className="rounded-xl">
+                  Back to Planner
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     );
@@ -204,33 +220,35 @@ export default function ItineraryResults() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-lilac-50 pt-28 pb-16">
+      <div className="min-h-screen bg-background pt-28 pb-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center py-20 max-w-md mx-auto">
             <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-lilac-600 mx-auto"></div>
             {usingAI && (
-              <div className="mt-2 inline-flex items-center gap-1.5 bg-gradient-to-r from-lilac-100 to-purple-100 text-lilac-700 px-4 py-1.5 rounded-full text-sm font-medium">
+              <div className="mt-2 inline-flex items-center gap-1.5 bg-gradient-to-r from-lilac-100 to-purple-100 dark:from-lilac-900/30 dark:to-purple-900/30 text-lilac-700 dark:text-lilac-300 px-4 py-1.5 rounded-full text-sm font-medium">
                 <Sparkles className="h-4 w-4" />
                 Powered by AI
               </div>
             )}
-            <div className="mt-8 space-y-4">
+            <div className="mt-8 flex flex-col gap-4">
               {loadingSteps.map((step, index) => (
-                <div
+                <Card
                   key={index}
-                  className={`flex items-center gap-3 px-6 py-3 rounded-xl transition-all duration-500 ${
+                  className={`transition-all duration-500 ${
                     index <= loadingStep
-                      ? "bg-white shadow-sm text-gray-900"
-                      : "text-gray-400"
+                      ? "shadow-sm"
+                      : "bg-transparent border-transparent text-muted-foreground shadow-none"
                   }`}>
-                  <span className="text-xl">{step.icon}</span>
-                  <span className={`text-sm font-medium ${index === loadingStep ? "animate-pulse" : ""}`}>
-                    {step.text}
-                  </span>
-                  {index < loadingStep && (
-                    <Check className="h-4 w-4 text-green-500 ml-auto" />
-                  )}
-                </div>
+                  <CardContent className="flex items-center gap-3 px-6 py-3">
+                    <span className="text-xl">{step.icon}</span>
+                    <span className={`text-sm font-medium ${index === loadingStep ? "animate-pulse" : ""}`}>
+                      {step.text}
+                    </span>
+                    {index < loadingStep && (
+                      <Check className="h-4 w-4 text-green-500 ml-auto" />
+                    )}
+                  </CardContent>
+                </Card>
               ))}
             </div>
           </div>
@@ -239,8 +257,12 @@ export default function ItineraryResults() {
     );
   }
 
+  const defaultTab = itineraries.length > 0
+    ? getTierTabValue(itineraries[getRecommendedIndex()]?.type || "economic")
+    : "economic";
+
   return (
-    <div className="min-h-screen bg-lilac-50 pt-28 pb-16">
+    <div className="min-h-screen bg-background pt-28 pb-16">
       <Helmet>
         <title>Your Itineraries - Travellah</title>
         <meta name="description" content="View your AI-generated personalized travel itineraries across Economic, Mid-Luxury, and Luxury tiers." />
@@ -251,112 +273,129 @@ export default function ItineraryResults() {
             <div className="flex items-center justify-center mb-4">
               <Sparkles className="h-10 w-10 text-yellow-500 animate-pulse" />
             </div>
-            <h1 className="text-4xl md:text-5xl font-bold font-kugile text-gray-900 mb-4">
+            <h1 className="text-4xl md:text-5xl font-bold font-kugile text-foreground mb-4">
               Your Perfect Travel Plans
             </h1>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
               Personalized itineraries crafted just for you. Choose your preferred package below.
             </p>
           </div>
         </Reveal>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
-          {itineraries.map((itinerary, index) => (
-            <Reveal
-              key={index}
-              delay={index * 0.1}>
-              <div
-                className={`bg-white rounded-[2.5rem] shadow-xl overflow-hidden transform transition-all duration-300 hover:scale-105 hover:shadow-2xl ${
-                  index === getRecommendedIndex() ? "ring-4 ring-lilac-500 ring-opacity-50" : ""
-                }`}>
-                {index === getRecommendedIndex() && (
-                  <div className="bg-gradient-to-r from-lilac-600 to-purple-600 text-white py-2 px-4 text-center text-sm font-semibold">
-                    <Star className="inline h-4 w-4 mr-1 animate-pulse" />
-                    Recommended For You
-                  </div>
-                )}
+        {/* Tier Tabs for switching between itinerary tiers */}
+        {itineraries.length > 0 && (
+          <Reveal delay={0.1}>
+            <Tabs defaultValue={defaultTab} className="mb-12">
+              <TabsList className="grid w-full max-w-lg mx-auto grid-cols-3 mb-8">
+                {itineraries.map((itinerary, index) => (
+                  <TabsTrigger key={index} value={getTierTabValue(itinerary.type)}>
+                    {index === getRecommendedIndex() && <Star className="h-3 w-3 mr-1" />}
+                    {getTierLabel(itinerary.type)}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
 
-                <div className="relative h-64 overflow-hidden">
-                  <img
-                    src={itinerary.images[0]}
-                    alt={itinerary.destination}
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent"></div>
-
-                  <div className="absolute top-4 left-4">
-                    <span
-                      className={`${getTierBadgeColor(
-                        itinerary.type
-                      )} text-white px-3 py-1 rounded-full text-xs font-bold backdrop-blur-sm`}>
-                      {getTierLabel(itinerary.type)}
-                    </span>
-                  </div>
-
-                  <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-                    <h2 className="text-2xl font-bold font-kugile mb-2">{itinerary.destination}</h2>
-                    <p className="text-sm text-gray-200">{itinerary.duration}</p>
-                  </div>
-                </div>
-
-                <div className="p-6">
-                  <div className="mb-6">
-                    <div className="flex items-center justify-between bg-lilac-50 p-5 rounded-xl">
-                      <div>
-                        <p className="text-sm text-gray-600 font-medium">Total Cost</p>
-                        <p className="text-3xl font-bold text-gray-900">
-                          ₹{itinerary.totalPrice.toLocaleString("en-IN")}
-                        </p>
-                      </div>
-                      <IndianRupee className="h-10 w-10 text-lilac-600" />
-                    </div>
-                  </div>
-
-                  <div className="mb-6">
-                    <div className="flex items-center space-x-2 mb-3">
-                      <Camera className="h-5 w-5 text-gray-600" />
-                      <h3 className="font-semibold font-kugile text-gray-900">Top Highlights</h3>
-                    </div>
-                    <div className="space-y-2">
-                      {itinerary.highlights.slice(0, 3).map((highlight, hIndex) => (
-                        <div
-                          key={hIndex}
-                          className="flex items-start space-x-2">
-                          <Check className="h-4 w-4 text-green-500 flex-shrink-0 mt-0.5" />
-                          <p className="text-sm text-gray-700">{highlight}</p>
+              {itineraries.map((itinerary, index) => (
+                <TabsContent key={index} value={getTierTabValue(itinerary.type)}>
+                  <Reveal delay={0.1}>
+                    <Card
+                      className={`rounded-[2.5rem] shadow-xl overflow-hidden ${
+                        index === getRecommendedIndex() ? "ring-4 ring-lilac-500 ring-opacity-50" : ""
+                      }`}>
+                      {index === getRecommendedIndex() && (
+                        <div className="bg-gradient-to-r from-lilac-600 to-purple-600 text-white py-2 px-4 text-center text-sm font-semibold">
+                          <Star className="inline h-4 w-4 mr-1 animate-pulse" />
+                          Recommended For You
                         </div>
-                      ))}
-                    </div>
-                  </div>
+                      )}
 
-                  <div className="space-y-3">
-                    <button
-                      onClick={() => {
-                        setSelectedItinerary(itinerary);
-                        setExpandedDay(2);
-                      }}
-                      className={`w-full bg-gradient-to-r ${getTierColor(
-                        itinerary.type
-                      )} text-white font-bold py-3 px-4 rounded-xl transition transform hover:scale-105 shadow-md hover:shadow-lg flex items-center justify-center space-x-2`}>
-                      <Info className="h-5 w-5" />
-                      <span>More Info</span>
-                    </button>
+                      <div className="relative h-64 overflow-hidden">
+                        <img
+                          src={itinerary.images[0]}
+                          alt={itinerary.destination}
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent"></div>
 
-                    <button
-                      onClick={() => handleBookItinerary(itinerary)}
-                      className="w-full bg-white border-2 border-gray-300 text-gray-800 hover:bg-gray-50 hover:border-gray-400 font-semibold py-3 px-4 rounded-xl transition">
-                      Book Now
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </Reveal>
-          ))}
-        </div>
+                        <div className="absolute top-4 left-4">
+                          <Badge
+                            className={`${getTierBadgeColor(
+                              itinerary.type
+                            )} text-white border-0 backdrop-blur-sm`}>
+                            {getTierLabel(itinerary.type)}
+                          </Badge>
+                        </div>
+
+                        <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
+                          <h2 className="text-2xl font-bold font-kugile mb-2">{itinerary.destination}</h2>
+                          <p className="text-sm text-gray-200">{itinerary.duration}</p>
+                        </div>
+                      </div>
+
+                      <CardContent className="p-6">
+                        <div className="mb-6">
+                          <Card className="bg-muted border-0">
+                            <CardContent className="flex items-center justify-between p-5">
+                              <div>
+                                <p className="text-sm text-muted-foreground font-medium">Total Cost</p>
+                                <p className="text-3xl font-bold text-foreground">
+                                  ₹{itinerary.totalPrice.toLocaleString("en-IN")}
+                                </p>
+                              </div>
+                              <IndianRupee className="h-10 w-10 text-lilac-600" />
+                            </CardContent>
+                          </Card>
+                        </div>
+
+                        <div className="mb-6">
+                          <div className="flex items-center gap-2 mb-3">
+                            <Camera className="h-5 w-5 text-muted-foreground" />
+                            <h3 className="font-semibold font-kugile text-foreground">Top Highlights</h3>
+                          </div>
+                          <div className="flex flex-col gap-2">
+                            {itinerary.highlights.slice(0, 3).map((highlight, hIndex) => (
+                              <div
+                                key={hIndex}
+                                className="flex items-start gap-2">
+                                <Check className="h-4 w-4 text-green-500 flex-shrink-0 mt-0.5" />
+                                <p className="text-sm text-muted-foreground">{highlight}</p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="flex flex-col gap-3">
+                          <Button
+                            onClick={() => {
+                              setSelectedItinerary(itinerary);
+                              setExpandedDay(2);
+                            }}
+                            className={`w-full bg-gradient-to-r ${getTierColor(
+                              itinerary.type
+                            )} text-white font-bold rounded-xl shadow-md hover:shadow-lg transition transform hover:scale-105 gap-2`}>
+                            <Info className="h-5 w-5" />
+                            <span>More Info</span>
+                          </Button>
+
+                          <Button
+                            onClick={() => handleBookItinerary(itinerary)}
+                            variant="outline"
+                            className="w-full rounded-xl font-semibold">
+                            Book Now
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </Reveal>
+                </TabsContent>
+              ))}
+            </Tabs>
+          </Reveal>
+        )}
 
         {selectedItinerary && (
           <Reveal>
-            <div className="bg-white rounded-[2.5rem] shadow-2xl overflow-hidden mb-12">
+            <Card className="rounded-[2.5rem] shadow-2xl overflow-hidden mb-12">
               <div className="relative h-80 overflow-hidden">
                 <img
                   src={selectedItinerary.images[0]}
@@ -375,13 +414,13 @@ export default function ItineraryResults() {
                 </button>
 
                 <div className="absolute bottom-0 left-0 right-0 p-8 text-white">
-                  <div className="flex items-center space-x-2 mb-3">
-                    <span
+                  <div className="flex items-center gap-2 mb-3">
+                    <Badge
                       className={`${getTierBadgeColor(
                         selectedItinerary.type
-                      )} px-4 py-2 rounded-full text-sm font-semibold`}>
+                      )} text-white border-0 px-4 py-2`}>
                       {getTierLabel(selectedItinerary.type)}
-                    </span>
+                    </Badge>
                   </div>
                   <h2 className="text-4xl md:text-5xl font-bold font-kugile mb-3">
                     {selectedItinerary.destination}
@@ -389,15 +428,15 @@ export default function ItineraryResults() {
                   <p className="text-xl text-gray-200 mb-4">{selectedItinerary.duration}</p>
 
                   <div className="flex flex-wrap items-center gap-6 text-sm">
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center gap-2">
                       <MapPin className="h-5 w-5" />
                       <span>{selectedItinerary.cities.length} Cities</span>
                     </div>
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center gap-2">
                       <Camera className="h-5 w-5" />
                       <span>{selectedItinerary.attractions.length}+ Attractions</span>
                     </div>
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center gap-2">
                       <Hotel className="h-5 w-5" />
                       <span>{selectedItinerary.hotelName}</span>
                     </div>
@@ -405,58 +444,68 @@ export default function ItineraryResults() {
                 </div>
               </div>
 
-              <div className="p-8">
+              <CardContent className="p-8">
                 <div className="grid md:grid-cols-2 gap-6 mb-8">
-                  <div className="bg-lilac-50 p-6 rounded-2xl">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <IndianRupee className="h-6 w-6 text-lilac-600" />
-                      <span className="text-sm text-gray-600 font-medium">Total Cost</span>
-                    </div>
-                    <p className="text-3xl font-bold text-gray-900">
-                      ₹{selectedItinerary.totalPrice.toLocaleString("en-IN")}
-                    </p>
-                  </div>
+                  <Card className="bg-muted border-0 rounded-2xl">
+                    <CardContent className="p-6">
+                      <div className="flex items-center gap-2 mb-2">
+                        <IndianRupee className="h-6 w-6 text-lilac-600" />
+                        <span className="text-sm text-muted-foreground font-medium">Total Cost</span>
+                      </div>
+                      <p className="text-3xl font-bold text-foreground">
+                        ₹{selectedItinerary.totalPrice.toLocaleString("en-IN")}
+                      </p>
+                    </CardContent>
+                  </Card>
 
-                  <div className="bg-green-50 p-6 rounded-2xl">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <Clock className="h-6 w-6 text-green-600" />
-                      <span className="text-sm text-gray-600 font-medium">Duration</span>
-                    </div>
-                    <p className="text-3xl font-bold text-gray-900">{selectedItinerary.duration}</p>
-                  </div>
+                  <Card className="bg-green-50 dark:bg-green-950/30 border-0 rounded-2xl">
+                    <CardContent className="p-6">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Clock className="h-6 w-6 text-green-600" />
+                        <span className="text-sm text-muted-foreground font-medium">Duration</span>
+                      </div>
+                      <p className="text-3xl font-bold text-foreground">{selectedItinerary.duration}</p>
+                    </CardContent>
+                  </Card>
                 </div>
 
+                <Separator className="my-8" />
+
                 <div className="mb-8">
-                  <h3 className="text-2xl font-bold font-kugile text-gray-900 mb-4 flex items-center">
+                  <h3 className="text-2xl font-bold font-kugile text-foreground mb-4 flex items-center">
                     <Camera className="h-6 w-6 mr-2 text-lilac-600" />
                     Top Attractions
                   </h3>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                     {selectedItinerary.highlights.map((highlight, hIndex) => (
-                      <div
+                      <Card
                         key={hIndex}
-                        className="bg-gray-50 p-4 rounded-xl border border-gray-200 hover:border-lilac-300 hover:shadow-md transition">
-                        <p className="text-sm font-medium text-gray-900">{highlight}</p>
-                      </div>
+                        className="bg-muted border hover:border-lilac-300 hover:shadow-md transition rounded-xl">
+                        <CardContent className="p-4">
+                          <p className="text-sm font-medium text-foreground">{highlight}</p>
+                        </CardContent>
+                      </Card>
                     ))}
                   </div>
                 </div>
 
                 {/* Weather Note */}
                 {selectedItinerary.weatherNote && (
-                  <div className="mb-6 bg-blue-50 border border-blue-100 rounded-2xl p-5 flex items-start gap-3">
-                    <MapPin className="h-5 w-5 text-blue-500 flex-shrink-0 mt-0.5" />
-                    <div>
-                      <p className="text-xs font-bold text-blue-700 uppercase tracking-wider mb-1">Weather & Packing</p>
-                      <p className="text-sm text-blue-900">{selectedItinerary.weatherNote}</p>
-                    </div>
-                  </div>
+                  <Card className="mb-6 bg-blue-50 dark:bg-blue-950/30 border-blue-100 dark:border-blue-900 rounded-2xl">
+                    <CardContent className="flex items-start gap-3 p-5">
+                      <MapPin className="h-5 w-5 text-blue-500 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-xs font-bold text-blue-700 dark:text-blue-300 uppercase tracking-wider mb-1">Weather & Packing</p>
+                        <p className="text-sm text-blue-900 dark:text-blue-200">{selectedItinerary.weatherNote}</p>
+                      </div>
+                    </CardContent>
+                  </Card>
                 )}
 
                 {/* Route Map */}
                 {selectedItinerary.days.length > 0 && (
                   <div className="mb-8">
-                    <h3 className="text-2xl font-bold font-kugile text-gray-900 mb-4 flex items-center">
+                    <h3 className="text-2xl font-bold font-kugile text-foreground mb-4 flex items-center">
                       <MapPin className="h-6 w-6 mr-2 text-lilac-600" />
                       Route Map
                     </h3>
@@ -471,243 +520,265 @@ export default function ItineraryResults() {
                   </div>
                 )}
 
+                <Separator className="my-8" />
+
                 <div className="mb-8">
                   <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-2xl font-bold font-kugile text-gray-900 flex items-center">
+                    <h3 className="text-2xl font-bold font-kugile text-foreground flex items-center">
                       <Calendar className="h-6 w-6 mr-2 text-lilac-600" />
                       Day-by-Day Itinerary
                     </h3>
-                    <button
-                      onClick={() => setExpandedDay(expandedDay ? null : 2)}
-                      className="text-sm text-lilac-600 hover:text-lilac-700 font-medium">
-                      {expandedDay ? "Collapse All" : "Click on any day to view details"}
-                    </button>
                   </div>
-                  <div className="space-y-4">
+
+                  <Accordion
+                    type="single"
+                    collapsible
+                    defaultValue={`day-2`}
+                    className="flex flex-col gap-4">
                     {selectedItinerary.days.map((day) => (
-                      <div
+                      <AccordionItem
                         key={day.day}
-                        className="border border-gray-200 rounded-2xl overflow-hidden hover:border-lilac-300 transition">
-                        <button
-                          onClick={() => toggleDay(day.day)}
-                          className="w-full bg-gray-50 p-6 flex items-center justify-between hover:bg-lilac-50 transition cursor-pointer">
-                          <div className="flex items-center space-x-4">
-                            <div className="bg-lilac-600 text-white w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg">
+                        value={`day-${day.day}`}
+                        className="border rounded-2xl overflow-hidden hover:border-lilac-300 transition">
+                        <AccordionTrigger className="bg-muted p-6 hover:bg-lilac-50 dark:hover:bg-lilac-950/20 transition cursor-pointer [&[data-state=open]>svg]:rotate-180 hover:no-underline">
+                          <div className="flex items-center gap-4">
+                            <div className="bg-lilac-600 text-white w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg flex-shrink-0">
                               {day.day}
                             </div>
                             <div className="text-left">
-                              <p className="text-sm text-gray-500 font-medium">
-                                Day {day.day} • {day.city}
+                              <p className="text-sm text-muted-foreground font-medium">
+                                Day {day.day} &bull; {day.city}
                               </p>
-                              <p className="text-lg font-bold text-gray-900">{day.title}</p>
+                              <p className="text-lg font-bold text-foreground">{day.title}</p>
                               {day.shortSummary && (
-                                <p className="text-xs text-gray-600 mt-0.5">{day.shortSummary}</p>
+                                <p className="text-xs text-muted-foreground mt-0.5">{day.shortSummary}</p>
                               )}
                               <p className="text-xs text-lilac-600 mt-1">
                                 {day.enhancedActivities?.length || day.activities.length} activities
-                                • Click to view details
                               </p>
                             </div>
                           </div>
-                          <ChevronDown
-                            className={`h-6 w-6 text-gray-400 transition-transform ${
-                              expandedDay === day.day ? "transform rotate-180" : ""
-                            }`}
-                          />
-                        </button>
+                        </AccordionTrigger>
 
-                        {expandedDay === day.day && (
-                          <div className="p-6 bg-white border-t border-gray-100 space-y-5">
-                            {/* Travel Tip */}
-                            {day.travelTip && (
-                              <div className="flex items-start gap-3 bg-amber-50 border border-amber-100 rounded-xl p-4">
+                        <AccordionContent className="p-6 bg-card border-t flex flex-col gap-5">
+                          {/* Travel Tip */}
+                          {day.travelTip && (
+                            <Card className="bg-amber-50 dark:bg-amber-950/30 border-amber-100 dark:border-amber-900 rounded-xl">
+                              <CardContent className="flex items-start gap-3 p-4">
                                 <Info className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
                                 <div>
-                                  <p className="text-xs font-bold text-amber-700 uppercase tracking-wider mb-1">Insider Tip</p>
-                                  <p className="text-sm text-amber-900">{day.travelTip}</p>
+                                  <p className="text-xs font-bold text-amber-700 dark:text-amber-300 uppercase tracking-wider mb-1">Insider Tip</p>
+                                  <p className="text-sm text-amber-900 dark:text-amber-200">{day.travelTip}</p>
                                 </div>
-                              </div>
-                            )}
+                              </CardContent>
+                            </Card>
+                          )}
 
-                            {/* Meals */}
-                            {day.meals && (day.meals.breakfast || day.meals.lunch || day.meals.dinner) && (
-                              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                                {day.meals.breakfast && (
-                                  <div className="bg-orange-50 rounded-xl p-3 border border-orange-100">
+                          {/* Meals */}
+                          {day.meals && (day.meals.breakfast || day.meals.lunch || day.meals.dinner) && (
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                              {day.meals.breakfast && (
+                                <Card className="bg-orange-50 dark:bg-orange-950/30 border-orange-100 dark:border-orange-900 rounded-xl">
+                                  <CardContent className="p-3">
                                     <p className="text-[10px] font-bold text-orange-600 uppercase tracking-wider mb-1">Breakfast</p>
-                                    <p className="text-xs text-gray-800">{day.meals.breakfast}</p>
-                                  </div>
-                                )}
-                                {day.meals.lunch && (
-                                  <div className="bg-green-50 rounded-xl p-3 border border-green-100">
+                                    <p className="text-xs text-foreground">{day.meals.breakfast}</p>
+                                  </CardContent>
+                                </Card>
+                              )}
+                              {day.meals.lunch && (
+                                <Card className="bg-green-50 dark:bg-green-950/30 border-green-100 dark:border-green-900 rounded-xl">
+                                  <CardContent className="p-3">
                                     <p className="text-[10px] font-bold text-green-600 uppercase tracking-wider mb-1">Lunch</p>
-                                    <p className="text-xs text-gray-800">{day.meals.lunch}</p>
-                                  </div>
-                                )}
-                                {day.meals.dinner && (
-                                  <div className="bg-indigo-50 rounded-xl p-3 border border-indigo-100">
+                                    <p className="text-xs text-foreground">{day.meals.lunch}</p>
+                                  </CardContent>
+                                </Card>
+                              )}
+                              {day.meals.dinner && (
+                                <Card className="bg-indigo-50 dark:bg-indigo-950/30 border-indigo-100 dark:border-indigo-900 rounded-xl">
+                                  <CardContent className="p-3">
                                     <p className="text-[10px] font-bold text-indigo-600 uppercase tracking-wider mb-1">Dinner</p>
-                                    <p className="text-xs text-gray-800">{day.meals.dinner}</p>
-                                  </div>
-                                )}
-                              </div>
-                            )}
-
-                            {/* Activities */}
-                            <div className="space-y-3">
-                              {day.enhancedActivities && day.enhancedActivities.length > 0
-                                ? day.enhancedActivities.map((activity, aIndex) => (
-                                    <div
-                                      key={aIndex}
-                                      className="flex items-start gap-3 p-3 rounded-xl hover:bg-gray-50 transition">
-                                      <div className="flex-shrink-0 mt-1">
-                                        <div className="w-8 h-8 bg-lilac-100 text-lilac-700 rounded-lg flex items-center justify-center text-xs font-bold">
-                                          {aIndex + 1}
-                                        </div>
-                                      </div>
-                                      <div className="flex-1 min-w-0">
-                                        <div className="flex items-center flex-wrap gap-2 mb-1">
-                                          <span className="text-gray-900 font-semibold text-sm">
-                                            {activity.name}
-                                          </span>
-                                          {activity.category && (
-                                            <span className="px-2 py-0.5 bg-lilac-100 text-lilac-700 text-[10px] rounded-full font-medium">
-                                              {activity.category}
-                                            </span>
-                                          )}
-                                        </div>
-                                        {activity.time && (
-                                          <p className="text-xs text-lilac-600 font-medium flex items-center gap-1 mb-1">
-                                            <Clock className="h-3 w-3" />
-                                            {activity.time}
-                                            {activity.duration && ` (${activity.duration})`}
-                                          </p>
-                                        )}
-                                        {activity.description && (
-                                          <p className="text-sm text-gray-600 leading-relaxed">
-                                            {activity.description}
-                                          </p>
-                                        )}
-                                        {activity.estimatedCost && (
-                                          <p className="text-xs text-green-700 font-medium mt-1 flex items-center gap-1">
-                                            <IndianRupee className="h-3 w-3" />
-                                            {activity.estimatedCost}
-                                          </p>
-                                        )}
-                                      </div>
-                                    </div>
-                                  ))
-                                : day.activities.map((activity, aIndex) => (
-                                    <div
-                                      key={aIndex}
-                                      className="flex items-start gap-3 p-2">
-                                      <Check className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
-                                      <span className="text-gray-700 text-sm">{activity}</span>
-                                    </div>
-                                  ))}
+                                    <p className="text-xs text-foreground">{day.meals.dinner}</p>
+                                  </CardContent>
+                                </Card>
+                              )}
                             </div>
+                          )}
+
+                          {/* Activities */}
+                          <div className="flex flex-col gap-3">
+                            {day.enhancedActivities && day.enhancedActivities.length > 0
+                              ? day.enhancedActivities.map((activity, aIndex) => (
+                                  <div
+                                    key={aIndex}
+                                    className="flex items-start gap-3 p-3 rounded-xl hover:bg-muted transition">
+                                    <div className="flex-shrink-0 mt-1">
+                                      <div className="w-8 h-8 bg-lilac-100 dark:bg-lilac-900/30 text-lilac-700 dark:text-lilac-300 rounded-lg flex items-center justify-center text-xs font-bold">
+                                        {aIndex + 1}
+                                      </div>
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <div className="flex items-center flex-wrap gap-2 mb-1">
+                                        <span className="text-foreground font-semibold text-sm">
+                                          {activity.name}
+                                        </span>
+                                        {activity.category && (
+                                          <Badge variant="secondary" className="text-[10px] px-2 py-0.5">
+                                            {activity.category}
+                                          </Badge>
+                                        )}
+                                      </div>
+                                      {activity.time && (
+                                        <p className="text-xs text-lilac-600 font-medium flex items-center gap-1 mb-1">
+                                          <Clock className="h-3 w-3" />
+                                          {activity.time}
+                                          {activity.duration && ` (${activity.duration})`}
+                                        </p>
+                                      )}
+                                      {activity.description && (
+                                        <p className="text-sm text-muted-foreground leading-relaxed">
+                                          {activity.description}
+                                        </p>
+                                      )}
+                                      {activity.estimatedCost && (
+                                        <p className="text-xs text-green-700 dark:text-green-400 font-medium mt-1 flex items-center gap-1">
+                                          <IndianRupee className="h-3 w-3" />
+                                          {activity.estimatedCost}
+                                        </p>
+                                      )}
+                                    </div>
+                                  </div>
+                                ))
+                              : day.activities.map((activity, aIndex) => (
+                                  <div
+                                    key={aIndex}
+                                    className="flex items-start gap-3 p-2">
+                                    <Check className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
+                                    <span className="text-muted-foreground text-sm">{activity}</span>
+                                  </div>
+                                ))}
                           </div>
-                        )}
-                      </div>
+                        </AccordionContent>
+                      </AccordionItem>
                     ))}
-                  </div>
+                  </Accordion>
+                </div>
+
+                <Separator className="my-8" />
+
+                <div className="grid md:grid-cols-2 gap-8 mb-8">
+                  <Card className="bg-green-50 dark:bg-green-950/30 border-0 rounded-2xl">
+                    <CardHeader>
+                      <div className="flex items-center gap-2">
+                        <Hotel className="h-6 w-6 text-green-600" />
+                        <CardTitle className="text-xl">Hotel Details</CardTitle>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-lg font-semibold text-foreground mb-4">
+                        {selectedItinerary.hotelName}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {selectedItinerary.hotelDescription ||
+                          (selectedItinerary.type === "luxury"
+                            ? "5-Star Luxury Property"
+                            : selectedItinerary.type === "middle_luxury"
+                            ? "4-Star Premium Hotel"
+                            : "Comfortable Budget Hotel")}
+                      </p>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-muted border-0 rounded-2xl">
+                    <CardHeader>
+                      <div className="flex items-center gap-2">
+                        <Car className="h-6 w-6 text-lilac-600" />
+                        <CardTitle className="text-xl">Transport</CardTitle>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <ul className="flex flex-col gap-2">
+                        {selectedItinerary.transportDetails.map((detail, dIndex) => (
+                          <li
+                            key={dIndex}
+                            className="flex items-start gap-2 text-sm text-muted-foreground">
+                            <Check className="h-4 w-4 text-lilac-600 flex-shrink-0 mt-0.5" />
+                            <span>{detail}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </CardContent>
+                  </Card>
                 </div>
 
                 <div className="grid md:grid-cols-2 gap-8 mb-8">
-                  <div className="bg-green-50 p-6 rounded-2xl">
-                    <div className="flex items-center space-x-2 mb-4">
-                      <Hotel className="h-6 w-6 text-green-600" />
-                      <h3 className="text-xl font-bold text-gray-900">Hotel Details</h3>
-                    </div>
-                    <p className="text-lg font-semibold text-gray-800 mb-4">
-                      {selectedItinerary.hotelName}
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      {selectedItinerary.hotelDescription ||
-                        (selectedItinerary.type === "luxury"
-                          ? "5-Star Luxury Property"
-                          : selectedItinerary.type === "middle_luxury"
-                          ? "4-Star Premium Hotel"
-                          : "Comfortable Budget Hotel")}
-                    </p>
-                  </div>
+                  <Card className="border-2 border-green-200 dark:border-green-800 rounded-2xl">
+                    <CardHeader>
+                      <div className="flex items-center gap-2">
+                        <Check className="h-6 w-6 text-green-600" />
+                        <CardTitle className="text-xl">Inclusions</CardTitle>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <ul className="flex flex-col gap-2">
+                        {selectedItinerary.inclusions.map((inclusion, iIndex) => (
+                          <li
+                            key={iIndex}
+                            className="flex items-start gap-2 text-sm text-muted-foreground">
+                            <Check className="h-4 w-4 text-green-500 flex-shrink-0 mt-0.5" />
+                            <span>{inclusion}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </CardContent>
+                  </Card>
 
-                  <div className="bg-lilac-50 p-6 rounded-2xl">
-                    <div className="flex items-center space-x-2 mb-4">
-                      <Car className="h-6 w-6 text-lilac-600" />
-                      <h3 className="text-xl font-bold text-gray-900">Transport</h3>
-                    </div>
-                    <ul className="space-y-2">
-                      {selectedItinerary.transportDetails.map((detail, dIndex) => (
-                        <li
-                          key={dIndex}
-                          className="flex items-start space-x-2 text-sm text-gray-700">
-                          <Check className="h-4 w-4 text-lilac-600 flex-shrink-0 mt-0.5" />
-                          <span>{detail}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
+                  <Card className="border-2 border-red-200 dark:border-red-800 rounded-2xl">
+                    <CardHeader>
+                      <div className="flex items-center gap-2">
+                        <X className="h-6 w-6 text-red-600" />
+                        <CardTitle className="text-xl">Exclusions</CardTitle>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <ul className="flex flex-col gap-2">
+                        {selectedItinerary.exclusions.map((exclusion, eIndex) => (
+                          <li
+                            key={eIndex}
+                            className="flex items-start gap-2 text-sm text-muted-foreground">
+                            <X className="h-4 w-4 text-red-500 flex-shrink-0 mt-0.5" />
+                            <span>{exclusion}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </CardContent>
+                  </Card>
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-8 mb-8">
-                  <div className="bg-white border-2 border-green-200 p-6 rounded-2xl">
-                    <div className="flex items-center space-x-2 mb-4">
-                      <Check className="h-6 w-6 text-green-600" />
-                      <h3 className="text-xl font-bold text-gray-900">Inclusions</h3>
-                    </div>
-                    <ul className="space-y-2">
-                      {selectedItinerary.inclusions.map((inclusion, iIndex) => (
-                        <li
-                          key={iIndex}
-                          className="flex items-start space-x-2 text-sm text-gray-700">
-                          <Check className="h-4 w-4 text-green-500 flex-shrink-0 mt-0.5" />
-                          <span>{inclusion}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  <div className="bg-white border-2 border-red-200 p-6 rounded-2xl">
-                    <div className="flex items-center space-x-2 mb-4">
-                      <X className="h-6 w-6 text-red-600" />
-                      <h3 className="text-xl font-bold text-gray-900">Exclusions</h3>
-                    </div>
-                    <ul className="space-y-2">
-                      {selectedItinerary.exclusions.map((exclusion, eIndex) => (
-                        <li
-                          key={eIndex}
-                          className="flex items-start space-x-2 text-sm text-gray-700">
-                          <X className="h-4 w-4 text-red-500 flex-shrink-0 mt-0.5" />
-                          <span>{exclusion}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-
-                <div className="flex gap-3">
-                  <button
+                <CardFooter className="flex gap-3 p-0">
+                  <Button
                     onClick={() => handleBookItinerary(selectedItinerary)}
-                    className="flex-1 bg-gradient-to-r from-lilac-600 to-purple-600 hover:from-lilac-700 hover:to-purple-700 text-white font-bold py-4 px-8 rounded-xl transition transform hover:scale-105 shadow-lg">
+                    size="lg"
+                    className="flex-1 bg-primary hover:bg-primary/90 text-white font-bold rounded-xl shadow-lg transition transform hover:scale-105">
                     Book This Package
-                  </button>
+                  </Button>
                   <ShareButton
                     title={`${selectedItinerary.destination} - ${selectedItinerary.duration}`}
                     text={`Check out this ${getTierLabel(selectedItinerary.type)} travel itinerary for ${selectedItinerary.destination}!`}
                   />
-                </div>
-              </div>
-            </div>
+                </CardFooter>
+              </CardContent>
+            </Card>
           </Reveal>
         )}
 
         <div className="text-center">
-          <button
+          <Button
             onClick={() => navigate("/smart-planner")}
-            className="bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold py-3 px-8 rounded-xl transition">
+            variant="secondary"
+            size="lg"
+            className="rounded-xl font-semibold">
             Generate New Itinerary
-          </button>
+          </Button>
         </div>
       </div>
     </div>

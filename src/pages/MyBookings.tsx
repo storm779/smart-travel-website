@@ -14,6 +14,11 @@ import { supabase } from "../lib/supabase";
 import { useAuth } from "../contexts/AuthContext";
 import { Reveal } from "../components/Reveal";
 import { Helmet } from "react-helmet-async";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Booking {
   id: string;
@@ -97,20 +102,20 @@ export default function MyBookings() {
       case "cancelled":
         return <XCircle className="h-5 w-5 text-red-600" />;
       default:
-        return <Clock className="h-5 w-5 text-gray-600" />;
+        return <Clock className="h-5 w-5 text-muted-foreground" />;
     }
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusVariant = (status: string) => {
     switch (status) {
       case "confirmed":
-        return "bg-green-100 text-green-800";
+        return "bg-green-100 text-green-800 hover:bg-green-100";
       case "pending":
-        return "bg-yellow-100 text-yellow-800";
+        return "bg-yellow-100 text-yellow-800 hover:bg-yellow-100";
       case "cancelled":
-        return "bg-red-100 text-red-800";
+        return "bg-red-100 text-red-800 hover:bg-red-100";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-muted text-muted-foreground hover:bg-muted";
     }
   };
 
@@ -124,17 +129,40 @@ export default function MyBookings() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 pt-28 pb-16 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-lilac-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading your bookings...</p>
+      <div className="min-h-screen bg-background pt-28 pb-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="mb-8">
+            <Skeleton className="h-9 w-48 mb-2" />
+            <Skeleton className="h-5 w-72" />
+          </div>
+          <div className="flex flex-col gap-6">
+            {[1, 2, 3].map((i) => (
+              <Card key={i} className="rounded-[2.5rem] overflow-hidden">
+                <div className="md:flex">
+                  <Skeleton className="md:w-1/3 h-48" />
+                  <CardContent className="md:w-2/3 p-8">
+                    <Skeleton className="h-6 w-48 mb-2" />
+                    <Skeleton className="h-4 w-32 mb-4" />
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      {[1, 2, 3, 4].map((j) => (
+                        <div key={j}>
+                          <Skeleton className="h-3 w-20 mb-1" />
+                          <Skeleton className="h-4 w-24" />
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </div>
+              </Card>
+            ))}
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-28 pb-16">
+    <div className="min-h-screen bg-background pt-28 pb-16">
       <Helmet>
         <title>My Bookings - Travellah</title>
         <meta name="description" content="View and manage your travel bookings." />
@@ -142,37 +170,40 @@ export default function MyBookings() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <Reveal>
           <div className="mb-8">
-            <h1 className="text-3xl font-bold font-kugile text-gray-900 mb-2">My Bookings</h1>
-            <p className="text-gray-600">View and manage your travel bookings</p>
+            <h1 className="text-3xl font-bold font-kugile text-foreground mb-2">My Bookings</h1>
+            <p className="text-muted-foreground">View and manage your travel bookings</p>
           </div>
         </Reveal>
 
         {bookings.length === 0 ? (
           <Reveal delay={0.2}>
-            <div className="bg-white rounded-[2.5rem] shadow-md p-12 text-center">
-              <Package className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-              <h2 className="text-2xl font-semibold font-kugile text-gray-900 mb-2">
-                No bookings yet
-              </h2>
-              <p className="text-gray-600 mb-6">
-                Start planning your next adventure with our packages or smart planner
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <button
-                  onClick={() => navigate("/packages")}
-                  className="bg-lilac-600 hover:bg-lilac-700 text-white px-6 py-3 rounded-xl font-semibold transition">
-                  Browse Packages
-                </button>
-                <button
-                  onClick={() => navigate("/smart-planner")}
-                  className="bg-white hover:bg-gray-50 text-lilac-600 border-2 border-lilac-600 px-6 py-3 rounded-xl font-semibold transition">
-                  Try Smart Planner
-                </button>
-              </div>
-            </div>
+            <Card className="rounded-[2.5rem] shadow-md">
+              <CardContent className="p-12 text-center">
+                <Package className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                <h2 className="text-2xl font-semibold font-kugile text-foreground mb-2">
+                  No bookings yet
+                </h2>
+                <p className="text-muted-foreground mb-6">
+                  Start planning your next adventure with our packages or smart planner
+                </p>
+                <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                  <Button
+                    onClick={() => navigate("/packages")}
+                    className="bg-lilac-600 hover:bg-lilac-700 text-white px-6 py-3 rounded-xl font-semibold">
+                    Browse Packages
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => navigate("/smart-planner")}
+                    className="border-2 border-lilac-600 text-lilac-600 hover:bg-muted px-6 py-3 rounded-xl font-semibold">
+                    Try Smart Planner
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
           </Reveal>
         ) : (
-          <div className="space-y-6">
+          <div className="flex flex-col gap-6">
             {bookings.map((booking, index) => {
               const title =
                 booking.booking_type === "package"
@@ -194,7 +225,7 @@ export default function MyBookings() {
                 <Reveal
                   key={booking.id}
                   delay={index * 0.1}>
-                  <div className="bg-white rounded-[2.5rem] shadow-md overflow-hidden hover:shadow-lg transition">
+                  <Card className="rounded-[2.5rem] shadow-md overflow-hidden hover:shadow-lg transition">
                     <div className="md:flex">
                       <div className="md:w-1/3">
                         <img
@@ -204,86 +235,85 @@ export default function MyBookings() {
                         />
                       </div>
 
-                      <div className="md:w-2/3 p-8">
+                      <CardContent className="md:w-2/3 p-8">
                         <div className="flex justify-between items-start mb-4">
                           <div>
-                            <h3 className="text-xl font-bold font-kugile text-gray-900 mb-1">
+                            <h3 className="text-xl font-bold font-kugile text-foreground mb-1">
                               {title}
                             </h3>
-                            <div className="flex items-center text-gray-600 text-sm">
+                            <div className="flex items-center text-muted-foreground text-sm">
                               <MapPin className="h-4 w-4 mr-1" />
                               <span>{destination}</span>
                             </div>
                           </div>
                           <div className="flex flex-col items-end gap-2">
-                            <span
-                              className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(
-                                booking.booking_status
-                              )}`}>
+                            <Badge className={getStatusVariant(booking.booking_status)}>
                               {booking.booking_status.toUpperCase()}
-                            </span>
-                            <span className="text-xs text-gray-500">
+                            </Badge>
+                            <Badge variant="outline" className="text-xs">
                               {booking.booking_type === "package" ? "Package" : "Custom"}
-                            </span>
+                            </Badge>
                           </div>
                         </div>
 
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                           <div>
-                            <p className="text-xs text-gray-500 mb-1">Booking Reference</p>
-                            <p className="text-sm font-semibold text-gray-900">
+                            <p className="text-xs text-muted-foreground mb-1">Booking Reference</p>
+                            <p className="text-sm font-semibold text-foreground">
                               {booking.booking_reference}
                             </p>
                           </div>
                           <div>
-                            <p className="text-xs text-gray-500 mb-1">Travel Dates</p>
-                            <p className="text-sm font-semibold text-gray-900">
+                            <p className="text-xs text-muted-foreground mb-1">Travel Dates</p>
+                            <p className="text-sm font-semibold text-foreground">
                               {formatDate(booking.travel_dates_start)}
                             </p>
                           </div>
                           <div>
-                            <p className="text-xs text-gray-500 mb-1">Travelers</p>
-                            <p className="text-sm font-semibold text-gray-900 flex items-center">
+                            <p className="text-xs text-muted-foreground mb-1">Travelers</p>
+                            <p className="text-sm font-semibold text-foreground flex items-center">
                               <Users className="h-4 w-4 mr-1" />
                               {booking.num_travelers}
                             </p>
                           </div>
                           <div>
-                            <p className="text-xs text-gray-500 mb-1">Total Amount</p>
+                            <p className="text-xs text-muted-foreground mb-1">Total Amount</p>
                             <p className="text-sm font-semibold text-lilac-600">
                               ₹{booking.total_price.toLocaleString("en-IN")}
                             </p>
                           </div>
                         </div>
 
-                        <div className="border-t pt-4 grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+                        <Separator className="mb-4" />
+
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
                           <div>
-                            <p className="text-gray-500">Pickup City</p>
-                            <p className="font-medium text-gray-900">{booking.pickup_city}</p>
+                            <p className="text-muted-foreground">Pickup City</p>
+                            <p className="font-medium text-foreground">{booking.pickup_city}</p>
                           </div>
                           <div>
-                            <p className="text-gray-500">Contact</p>
-                            <p className="font-medium text-gray-900">{booking.contact_name}</p>
+                            <p className="text-muted-foreground">Contact</p>
+                            <p className="font-medium text-foreground">{booking.contact_name}</p>
                           </div>
                           <div>
-                            <p className="text-gray-500">Payment</p>
+                            <p className="text-muted-foreground">Payment</p>
                             <div className="flex items-center gap-1">
                               {getStatusIcon(booking.payment_status)}
-                              <p className="font-medium text-gray-900 capitalize">
+                              <p className="font-medium text-foreground capitalize">
                                 {booking.payment_status}
                               </p>
                             </div>
                           </div>
                         </div>
 
-                        <div className="mt-4 pt-4 border-t">
-                          <p className="text-xs text-gray-500">
-                            Booked on {formatDate(booking.created_at)}
-                          </p>
-                        </div>
-                      </div>
+                        <Separator className="my-4" />
+
+                        <p className="text-xs text-muted-foreground">
+                          Booked on {formatDate(booking.created_at)}
+                        </p>
+                      </CardContent>
                     </div>
-                  </div>
+                  </Card>
                 </Reveal>
               );
             })}
