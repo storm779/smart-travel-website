@@ -2,15 +2,14 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
 async function verifySignature(
   orderId: string,
   paymentId: string,
   signature: string,
-  secret: string
+  secret: string,
 ): Promise<boolean> {
   const message = `${orderId}|${paymentId}`;
   const encoder = new TextEncoder();
@@ -19,13 +18,9 @@ async function verifySignature(
     encoder.encode(secret),
     { name: "HMAC", hash: "SHA-256" },
     false,
-    ["sign"]
+    ["sign"],
   );
-  const signatureBuffer = await crypto.subtle.sign(
-    "HMAC",
-    key,
-    encoder.encode(message)
-  );
+  const signatureBuffer = await crypto.subtle.sign("HMAC", key, encoder.encode(message));
   const generatedSignature = Array.from(new Uint8Array(signatureBuffer))
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");
@@ -81,12 +76,16 @@ function generateConfirmationEmail(booking: {
                   <span style="color:#333;font-size:16px;font-weight:600;">${travelDates}</span>
                 </td>
               </tr>
-              ${booking.num_travelers ? `<tr>
+              ${
+                booking.num_travelers
+                  ? `<tr>
                 <td style="padding:16px 20px;border-bottom:1px solid #ece3ec;">
                   <span style="color:#888;font-size:13px;text-transform:uppercase;letter-spacing:0.5px;">Travelers</span><br/>
                   <span style="color:#333;font-size:16px;font-weight:600;">${booking.num_travelers}</span>
                 </td>
-              </tr>` : ""}
+              </tr>`
+                  : ""
+              }
               <tr>
                 <td style="padding:16px 20px;">
                   <span style="color:#888;font-size:13px;text-transform:uppercase;letter-spacing:0.5px;">Total Amount</span><br/>
@@ -118,14 +117,13 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } =
-      await req.json();
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = await req.json();
 
     if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
-      return new Response(
-        JSON.stringify({ error: "Missing payment verification fields" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return new Response(JSON.stringify({ error: "Missing payment verification fields" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     const razorpayKeySecret = Deno.env.get("RAZORPAY_KEY_SECRET") || "pSt7Uo2l7WrSlIvVFlquZv5r";
@@ -135,21 +133,21 @@ Deno.serve(async (req) => {
       razorpay_order_id,
       razorpay_payment_id,
       razorpay_signature,
-      razorpayKeySecret
+      razorpayKeySecret,
     );
 
     if (!isValid) {
       console.error("Payment signature verification failed");
-      return new Response(
-        JSON.stringify({ error: "Payment verification failed" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return new Response(JSON.stringify({ error: "Payment verification failed" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     // Use service role to update booking (bypasses RLS)
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
     // Update booking status
@@ -162,19 +160,21 @@ Deno.serve(async (req) => {
         razorpay_signature,
       })
       .eq("razorpay_order_id", razorpay_order_id)
-      .select("booking_reference, contact_email, contact_name, total_price, travel_dates_start, travel_dates_end, num_travelers, booking_type")
+      .select(
+        "booking_reference, contact_email, contact_name, total_price, travel_dates_start, travel_dates_end, num_travelers, booking_type",
+      )
       .single();
 
     if (updateError) {
       console.error("Booking update error:", updateError);
-      return new Response(
-        JSON.stringify({ error: "Failed to update booking" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return new Response(JSON.stringify({ error: "Failed to update booking" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     // Send confirmation email (non-blocking, failure won't affect payment response)
-    const resendApiKey = Deno.env.get("RESEND_API_KEY") || "re_cMPUywt2_2xn9nfvzwLQYYtjwGxPZhRAQ";
+    const resendApiKey = Deno.env.get("RESEND_API_KEY") || "re_dEkDd3iQ_5wKYoknxjy15kraKuibtHVet";
     if (resendApiKey && booking.contact_email) {
       try {
         await fetch("https://api.resend.com/emails", {
@@ -201,13 +201,13 @@ Deno.serve(async (req) => {
         success: true,
         booking_reference: booking.booking_reference,
       }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   } catch (error) {
     console.error("Unexpected error:", error);
-    return new Response(
-      JSON.stringify({ error: "Internal server error" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return new Response(JSON.stringify({ error: "Internal server error" }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 });

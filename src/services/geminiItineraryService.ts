@@ -145,6 +145,7 @@ Return a JSON object with this structure:
             }
           ]
         }
+        // ... CONTINUE WITH day 2, day 3, ... up to day ${days}. The "days" array MUST contain exactly ${days} entries — one full object for EACH day from 1 to ${days}. Do not stop at day 1.
       ],
       "highlights": ["<8 top attraction names>"],
       "cities": ["<cities visited in order>"],
@@ -162,6 +163,8 @@ Return a JSON object with this structure:
 }
 
 CRITICAL RULES FOR QUALITY:
+
+0. DAYS ARRAY LENGTH IS NON-NEGOTIABLE: For each tier, the "days" array MUST contain exactly ${days} day objects — one for day 1, one for day 2, ..., one for day ${days}. Do NOT return fewer days. Do NOT abbreviate or use placeholders like "...same as above". If the trip is ${days} days long, I expect ${days} fully-written day objects per tier. The example above shows only day 1 to save space — you must expand it to all ${days} days.
 
 1. REAL PLACES ONLY: Every hotel, restaurant, attraction MUST be a real place that exists today. No made-up names.
 
@@ -212,14 +215,15 @@ export async function generateItinerariesWithGemini(
     return cached;
   }
 
-  try {
-    const model = getModel();
-    const prompt = buildItineraryPrompt(preferences);
+  const expectedDays = getDurationDays(preferences.duration);
+  const model = getModel();
+  const basePrompt = buildItineraryPrompt(preferences);
+
+  const runOnce = async (prompt: string): Promise<GeminiItineraryResponse | null> => {
     const result = await model.generateContent(prompt);
     const text = result.response.text();
     const parsed = parseJsonResponse<GeminiItineraryResponse>(text);
 
-    // Validate the response has the expected structure
     if (
       !parsed.itineraries ||
       !Array.isArray(parsed.itineraries) ||
@@ -228,8 +232,36 @@ export async function generateItinerariesWithGemini(
       console.error("Invalid Gemini itinerary response structure:", parsed);
       return null;
     }
+    return parsed;
+  };
 
-    // Cache the result
+  const tierShortfall = (resp: GeminiItineraryResponse): number[] =>
+    resp.itineraries
+      .map((t, i) => (Array.isArray(t.days) ? t.days.length : 0) < expectedDays ? i : -1)
+      .filter((i) => i >= 0);
+
+  try {
+    let parsed = await runOnce(basePrompt);
+    if (!parsed) return null;
+
+    const shortTiers = tierShortfall(parsed);
+    if (shortTiers.length > 0) {
+      const tierNames = shortTiers.map((i) => parsed!.itineraries[i].type).join(", ");
+      const counts = parsed.itineraries.map((t) => t.days?.length ?? 0).join("/");
+      console.warn(
+        `Gemini returned short days arrays (got ${counts}, expected ${expectedDays} per tier). Retrying for tiers: ${tierNames}`
+      );
+
+      const retryPrompt =
+        basePrompt +
+        `\n\nIMPORTANT RETRY INSTRUCTION: Your previous response had only ${counts} days in the three tiers, but the trip is ${expectedDays} days long. EVERY tier's "days" array MUST contain exactly ${expectedDays} fully-written day objects (day 1 through day ${expectedDays}). Do not stop early. Do not use placeholders. Generate all ${expectedDays} days for all three tiers.`;
+
+      const retried = await runOnce(retryPrompt);
+      if (retried && tierShortfall(retried).length < shortTiers.length) {
+        parsed = retried;
+      }
+    }
+
     setCache(cacheKey, parsed);
     return parsed;
   } catch (error) {

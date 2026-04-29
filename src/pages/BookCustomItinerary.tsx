@@ -121,6 +121,20 @@ export default function BookCustomItinerary() {
           contact: bookingData.contactPhone,
         },
         theme: { color: "#964996" },
+        config: {
+          display: {
+            blocks: {
+              upi: {
+                name: "Pay using UPI",
+                instruments: [
+                  { method: "upi", flows: ["collect", "intent", "qr"] },
+                ],
+              },
+            },
+            sequence: ["block.upi"],
+            preferences: { show_default_blocks: true },
+          },
+        },
         modal: {
           ondismiss: () => {
             setLoading(false);

@@ -1,8 +1,6 @@
-
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
 type EmailType = "booking_confirmation" | "payment_receipt";
@@ -60,24 +58,32 @@ function generateBookingConfirmationEmail(data: Record<string, unknown>): string
                   <span style="color:#964996;font-size:18px;font-weight:700;">${bookingReference}</span>
                 </td>
               </tr>
-              ${destination ? `<tr>
+              ${
+                destination
+                  ? `<tr>
                 <td style="padding:16px 20px;border-bottom:1px solid #ece3ec;">
                   <span style="color:#888;font-size:13px;text-transform:uppercase;letter-spacing:0.5px;">Destination</span><br/>
                   <span style="color:#333;font-size:16px;font-weight:600;">${destination}</span>
                 </td>
-              </tr>` : ""}
+              </tr>`
+                  : ""
+              }
               <tr>
                 <td style="padding:16px 20px;border-bottom:1px solid #ece3ec;">
                   <span style="color:#888;font-size:13px;text-transform:uppercase;letter-spacing:0.5px;">Travel Dates</span><br/>
                   <span style="color:#333;font-size:16px;font-weight:600;">${travelDates}</span>
                 </td>
               </tr>
-              ${numTravelers ? `<tr>
+              ${
+                numTravelers
+                  ? `<tr>
                 <td style="padding:16px 20px;border-bottom:1px solid #ece3ec;">
                   <span style="color:#888;font-size:13px;text-transform:uppercase;letter-spacing:0.5px;">Travelers</span><br/>
                   <span style="color:#333;font-size:16px;font-weight:600;">${numTravelers}</span>
                 </td>
-              </tr>` : ""}
+              </tr>`
+                  : ""
+              }
               <tr>
                 <td style="padding:16px 20px;">
                   <span style="color:#888;font-size:13px;text-transform:uppercase;letter-spacing:0.5px;">Total Amount</span><br/>
@@ -113,11 +119,13 @@ function generatePaymentReceiptEmail(data: Record<string, unknown>): string {
     : "N/A";
   const paymentMethod = data.payment_method || "Online Payment";
   const transactionId = data.transaction_id || data.razorpay_payment_id || "N/A";
-  const paymentDate = data.payment_date || new Date().toLocaleDateString("en-IN", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
+  const paymentDate =
+    data.payment_date ||
+    new Date().toLocaleDateString("en-IN", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
 
   return `
 <!DOCTYPE html>
@@ -198,21 +206,21 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const resendApiKey = Deno.env.get("RESEND_API_KEY") || "re_cMPUywt2_2xn9nfvzwLQYYtjwGxPZhRAQ";
+    const resendApiKey = Deno.env.get("RESEND_API_KEY") || "re_dEkDd3iQ_5wKYoknxjy15kraKuibtHVet";
     if (!resendApiKey) {
-      return new Response(
-        JSON.stringify({ error: "RESEND_API_KEY not configured" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return new Response(JSON.stringify({ error: "RESEND_API_KEY not configured" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     const { type, to, data }: EmailRequest = await req.json();
 
     if (!type || !to || !data) {
-      return new Response(
-        JSON.stringify({ error: "Missing required fields: type, to, data" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return new Response(JSON.stringify({ error: "Missing required fields: type, to, data" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     let subject: string;
@@ -228,10 +236,10 @@ Deno.serve(async (req) => {
         html = generatePaymentReceiptEmail(data);
         break;
       default:
-        return new Response(
-          JSON.stringify({ error: `Unknown email type: ${type}` }),
-          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+        return new Response(JSON.stringify({ error: `Unknown email type: ${type}` }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
     }
 
     const resendResponse = await fetch("https://api.resend.com/emails", {
@@ -252,21 +260,20 @@ Deno.serve(async (req) => {
 
     if (!resendResponse.ok) {
       console.error("Resend API error:", resendData);
-      return new Response(
-        JSON.stringify({ error: "Failed to send email", details: resendData }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return new Response(JSON.stringify({ error: "Failed to send email", details: resendData }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
-    return new Response(
-      JSON.stringify({ success: true, email_id: resendData.id }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return new Response(JSON.stringify({ success: true, email_id: resendData.id }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   } catch (error) {
     console.error("Unexpected error:", error);
-    return new Response(
-      JSON.stringify({ error: "Internal server error" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return new Response(JSON.stringify({ error: "Internal server error" }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 });
