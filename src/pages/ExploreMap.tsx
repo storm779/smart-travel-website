@@ -506,7 +506,7 @@ export default function ExploreMap() {
             </div>
 
             {/* Package cards */}
-            <ScrollArea className="flex-grow">
+            <ScrollArea className="flex-grow min-h-0">
               <div className="p-3 flex flex-col gap-2">
                 {loading ? (
                   <div className="flex items-center justify-center py-20">

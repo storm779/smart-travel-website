@@ -50,3 +50,4 @@ coverage
 .gemini
 .agents
 .playwright-mcp
+.vercel
