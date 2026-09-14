@@ -1,16 +1,36 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Sparkles, ArrowRight, MapPin, ChevronDown, Plus, Minus } from "lucide-react";
+import { Helmet } from "react-helmet-async";
+import { ArrowRight, MapPin, Star, Quote, Sparkles, Building2, Fingerprint, Headphones } from "lucide-react";
+import { motion } from "framer-motion";
 import { supabase, Package as PackageType } from "../lib/supabase";
-import { useAuth } from "../contexts/AuthContext";
-import { Reveal } from "../components/Reveal";
 import { CountUp } from "../components/CountUp";
+import { Reveal } from "../components/Reveal";
+import { ExpandCards } from "../components/ExpandCards";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
+import { Skeleton } from "@/components/ui/skeleton";
+
+// --- Animation variants ---
+const fadeUp = {
+  hidden: { opacity: 0, y: 40 },
+  visible: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.8, delay: i * 0.15, ease: [0.25, 0.46, 0.45, 0.94] },
+  }),
+};
+
+const stagger = {
+  visible: { transition: { staggerChildren: 0.12 } },
+};
 
 export default function Home() {
-  const { user, loading: authLoading } = useAuth();
   const [popularPackages, setPopularPackages] = useState<PackageType[]>([]);
   const [loading, setLoading] = useState(true);
-  const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   useEffect(() => {
     loadPopularPackages();
@@ -23,429 +43,498 @@ export default function Home() {
       .eq("is_active", true)
       .order("rating", { ascending: false })
       .limit(3);
-
-    if (data) {
-      setPopularPackages(data);
-    }
+    if (data) setPopularPackages(data);
     setLoading(false);
   };
 
   const testimonials = [
     {
-      name: "Rex",
-      role: "Traveler",
-      text: "Cycling app has a great social feature allows me to connect with other cyclists, motivating to see what others are doing.",
-      image: "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg",
-    },
-    {
-      name: "Alex Buckmaster",
-      role: "Traveler",
-      text: "Traveling with this service was a game-changer for me. The customized itinerary perfectly matched my interests, and I was able to explore hidden gems.",
+      name: "Priya Sharma",
+      role: "Solo Traveler",
+      text: "The AI planner understood exactly what I wanted — a budget-friendly Kerala trip with offbeat spots. Every restaurant, every homestay was handpicked perfection.",
       image: "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg",
     },
     {
-      name: "Dennis Callis",
-      role: "Traveler",
-      text: "The flexibility and range of options offered by this service were impressive. I was able to customize my trip to fit my schedule perfectly, and the special deals.",
+      name: "Arjun Mehta",
+      role: "Family Travel",
+      text: "Planning a 10-day Rajasthan trip for a family of six used to take weeks. Travellah did it in seconds, and the itinerary was better than what any agent gave us.",
+      image: "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg",
+    },
+    {
+      name: "Sneha Reddy",
+      role: "Honeymoon",
+      text: "Our Maldives honeymoon was magical. The custom itinerary included sunset cruises and private dinners we never would have found on our own.",
       image: "https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg",
     },
   ];
 
   const faqs = [
     {
-      question: "How do I book a trip with your travel service?",
-      answer:
-        "You can book a trip through our website, by calling our customer service hotline, or by visiting one of our offices. Simply choose your destination, travel dates, and preferred services.",
+      question: "How does the AI travel planner work?",
+      answer: "Our AI analyzes your preferences — budget, interests, travel style, and dates — to generate three personalized itineraries (Economic, Mid-Luxury, Luxury) with day-by-day activities, restaurants, and hotels.",
     },
     {
       question: "What payment methods do you accept?",
-      answer: "We accept all major credit cards, debit cards, PayPal, and bank transfers.",
+      answer: "We accept UPI, all major credit/debit cards, net banking, and digital wallets. Payment is processed securely through our platform.",
     },
     {
-      question: "How do I know if my booking is confirmed?",
-      answer:
-        "You will receive a confirmation email with your booking details and a reference number immediately after payment.",
+      question: "Can I modify my itinerary after booking?",
+      answer: "Yes, you can request modifications up to 7 days before your travel date. Our support team will help adjust your plan at no extra charge.",
     },
     {
       question: "Do you offer group travel packages?",
-      answer:
-        "Yes, we offer special rates and customized itineraries for group travel. Contact our support team for more details.",
+      answer: "Absolutely. Our AI planner supports groups up to 20 people with special rates, shared activities, and customized accommodation arrangements.",
     },
     {
-      question: "Do you offer travel insurance?",
-      answer:
-        "Yes, we provide comprehensive travel insurance options to ensure your peace of mind during your journey.",
+      question: "Is travel insurance included?",
+      answer: "Travel insurance is available as an add-on during checkout. We partner with leading insurers to offer comprehensive coverage for your peace of mind.",
     },
   ];
 
+  const stats = [
+    { value: 50000, suffix: "+", label: "Travelers" },
+    { value: 200, suffix: "+", label: "Destinations" },
+    { value: 4.8, suffix: "/5", label: "Rating", isDecimal: true },
+  ];
+
   return (
-    <div className="min-h-screen font-sans text-gray-800 bg-white">
-      {/* Hero Section */}
-      <div className="p-3 md:p-1">
-        <section className="relative h-[calc(100vh-0.5rem)] w-full overflow-hidden rounded-[0.5rem]">
-          <div
-            className="absolute inset-0 bg-cover bg-center transform scale-105 transition-transform duration-[20s] hover:scale-100"
-            style={{
-              backgroundImage:
-                "url(https://images.pexels.com/photos/2161449/pexels-photo-2161449.jpeg)",
-            }}>
-            <div className="absolute inset-0 bg-black/20"></div>
+    <div className="min-h-screen bg-background text-foreground overflow-hidden">
+      <Helmet>
+        <title>Travellah — AI-Powered Travel Planning</title>
+        <meta name="description" content="Plan your perfect trip with AI-powered itineraries. Explore curated travel packages across India and worldwide." />
+      </Helmet>
+
+      {/* ===================== HERO ===================== */}
+      <section className="relative h-screen w-full overflow-hidden">
+        {/* Background image with slow zoom */}
+        <div className="absolute inset-0">
+          <img
+            src="https://images.pexels.com/photos/2161449/pexels-photo-2161449.jpeg"
+            alt="Scenic travel destination"
+            className="w-full h-full object-cover scale-105 animate-[slowZoom_25s_ease-in-out_infinite_alternate]"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/10 to-black/60" />
+        </div>
+
+        {/* Hero content */}
+        <div className="relative z-10 h-full flex flex-col justify-end pb-20 md:pb-28 px-6 sm:px-10 lg:px-16 max-w-7xl mx-auto">
+          <motion.div
+            initial="hidden"
+            animate="visible"
+            variants={stagger}
+            className="max-w-3xl">
+            <motion.p
+              variants={fadeUp}
+              custom={0}
+              className="text-white/70 text-sm uppercase tracking-[0.25em] mb-4 font-medium">
+              AI-Powered Travel Planning
+            </motion.p>
+            <motion.h1
+              variants={fadeUp}
+              custom={1}
+              className="text-4xl sm:text-5xl md:text-7xl text-white leading-[1.1] mb-6">
+              Begin your{" "}
+              <span className="font-kugile italic font-normal">dream journey</span>
+              <br className="hidden md:block" /> with us
+            </motion.h1>
+            <motion.p
+              variants={fadeUp}
+              custom={2}
+              className="text-white/60 text-lg max-w-lg mb-10 leading-relaxed">
+              Personalized itineraries crafted by AI. From hidden gems to iconic landmarks — your perfect trip, planned in seconds.
+            </motion.p>
+            <motion.div variants={fadeUp} custom={3} className="flex flex-wrap gap-4">
+              <Button asChild className="rounded-full px-8 py-4 h-auto bg-white text-foreground hover:bg-lilac-100 shadow-lg hover:shadow-xl font-medium text-sm">
+                <Link to="/smart-planner" className="flex items-center gap-3">
+                  Plan Your Trip
+                  <ArrowRight size={16} className="group-hover/button:translate-x-1 transition-transform" />
+                </Link>
+              </Button>
+              <Button asChild variant="outline" className="rounded-full px-8 py-4 h-auto border-white/40 text-white bg-transparent hover:bg-white/10 backdrop-blur-sm font-medium text-sm">
+                <Link to="/packages" className="flex items-center gap-3">
+                  Browse Packages
+                </Link>
+              </Button>
+            </motion.div>
+          </motion.div>
+
+          {/* Location tag */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1.5, duration: 1 }}
+            className="absolute bottom-8 right-6 sm:right-10 lg:right-16 text-white/50 text-xs flex items-center gap-1.5 uppercase tracking-widest">
+            <MapPin size={12} />
+            Bali, Indonesia
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ===================== STATS BAR ===================== */}
+      <section className="relative -mt-16 z-20 px-6 sm:px-10 lg:px-16 max-w-5xl mx-auto">
+        <Card className="rounded-2xl shadow-xl border-border px-8 py-8 ring-0">
+          <CardContent className="grid grid-cols-3 divide-x divide-border p-0">
+            {stats.map((stat, i) => (
+              <Reveal key={i} delay={i * 150}>
+                <div className="text-center px-4">
+                  <p className="text-3xl md:text-4xl font-kugile text-foreground mb-1">
+                    {stat.isDecimal ? (
+                      <span>{stat.value}{stat.suffix}</span>
+                    ) : (
+                      <CountUp end={stat.value} suffix={stat.suffix} />
+                    )}
+                  </p>
+                  <p className="text-xs text-muted-foreground uppercase tracking-[0.15em] font-medium">
+                    {stat.label}
+                  </p>
+                </div>
+              </Reveal>
+            ))}
+          </CardContent>
+        </Card>
+      </section>
+
+      {/* ===================== POPULAR DESTINATIONS ===================== */}
+      <section className="py-28 md:py-36 px-6 sm:px-10 lg:px-16 bg-muted/50">
+        <div className="max-w-7xl mx-auto">
+          <Reveal>
+            <p className="text-xs uppercase tracking-[0.2em] text-lilac-600 dark:text-lilac-400 font-semibold mb-4">
+              Popular Destinations
+            </p>
+            <h2 className="text-3xl md:text-5xl font-kugile italic text-foreground mb-14 leading-tight">
+              Where will you go next?
+            </h2>
+          </Reveal>
+          <Reveal delay={200}>
+            <ExpandCards />
+          </Reveal>
+        </div>
+      </section>
+
+      {/* ===================== ABOUT ===================== */}
+      <section className="py-28 md:py-36 px-6 sm:px-10 lg:px-16 bg-background">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
+          <Reveal className="lg:col-span-7">
+            <p className="text-xs uppercase tracking-[0.2em] text-lilac-600 dark:text-lilac-400 font-semibold mb-6">
+              Why Travellah
+            </p>
+            <h2 className="text-3xl md:text-5xl font-kugile italic leading-[1.2] text-foreground mb-8">
+              We don't just plan trips.{" "}
+              <span className="text-lilac-600 dark:text-lilac-400 not-italic">
+                We craft experiences
+              </span>{" "}
+              you'll remember forever.
+            </h2>
+            <p className="text-muted-foreground text-lg leading-relaxed max-w-xl">
+              Our AI understands your travel personality — adventurer, culture seeker, beach lover, foodie — and builds itineraries that feel hand-curated by a local expert.
+            </p>
+          </Reveal>
+
+          <div className="lg:col-span-5 grid grid-cols-2 gap-4">
+            {[
+              { icon: Sparkles, title: "AI Itineraries", desc: "3 tiers generated in seconds", accent: "from-lilac-500/20 to-purple-500/20 dark:from-lilac-500/10 dark:to-purple-500/10", iconColor: "text-lilac-600 dark:text-lilac-400", border: "hover:border-lilac-300 dark:hover:border-lilac-600/40", shadow: "hover:shadow-lilac-200/40 dark:hover:shadow-lilac-900/30" },
+              { icon: Building2, title: "Curated Stays", desc: "Handpicked hotels & homestays", accent: "from-amber-500/20 to-orange-500/20 dark:from-amber-500/10 dark:to-orange-500/10", iconColor: "text-amber-600 dark:text-amber-400", border: "hover:border-amber-300 dark:hover:border-amber-600/40", shadow: "hover:shadow-amber-200/40 dark:hover:shadow-amber-900/30" },
+              { icon: Fingerprint, title: "Personalized", desc: "Matched to your travel style", accent: "from-teal-500/20 to-emerald-500/20 dark:from-teal-500/10 dark:to-emerald-500/10", iconColor: "text-teal-600 dark:text-teal-400", border: "hover:border-teal-300 dark:hover:border-teal-600/40", shadow: "hover:shadow-teal-200/40 dark:hover:shadow-teal-900/30" },
+              { icon: Headphones, title: "24/7 Support", desc: "AI chatbot always available", accent: "from-blue-500/20 to-indigo-500/20 dark:from-blue-500/10 dark:to-indigo-500/10", iconColor: "text-blue-600 dark:text-blue-400", border: "hover:border-blue-300 dark:hover:border-blue-600/40", shadow: "hover:shadow-blue-200/40 dark:hover:shadow-blue-900/30" },
+            ].map((item, i) => (
+              <Reveal key={i} delay={i * 100}>
+                <motion.div
+                  whileHover={{ y: -4, scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 20 }}
+                >
+                  <Card className={`rounded-2xl p-6 ring-0 border border-border bg-muted/50 hover:shadow-xl ${item.border} ${item.shadow} transition-[border-color,box-shadow] duration-300 group cursor-default`}>
+                    <CardContent className="p-0">
+                      <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${item.accent} flex items-center justify-center mb-4 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3`}>
+                        <item.icon className={`h-5 w-5 ${item.iconColor} transition-transform duration-300 group-hover:scale-110`} />
+                      </div>
+                      <h4 className="font-semibold text-foreground text-sm mb-1 transition-colors duration-300">{item.title}</h4>
+                      <p className="text-xs text-muted-foreground leading-relaxed">{item.desc}</p>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              </Reveal>
+            ))}
           </div>
+        </div>
+      </section>
 
-          <div className="relative z-10 h-full flex flex-col justify-center px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto pt-20 ">
-            <div className="max-w-3xl animate-fade-in-up">
-              <h1 className="text-5xl md:text-7xl  text-white mb-6 leading-tight">
-                Begin your <span className="font-kugile italic font-normal">dream journey</span>{" "}
-                with our expert guidance and support
-              </h1>
-            </div>
+      {/* ===================== SERVICES ===================== */}
+      <section className="py-28 px-6 sm:px-10 lg:px-16 bg-muted/50">
+        <div className="max-w-7xl mx-auto">
+          <Reveal>
+            <p className="text-xs uppercase tracking-[0.2em] text-lilac-600 dark:text-lilac-400 font-semibold mb-4">
+              Our Services
+            </p>
+            <h2 className="text-3xl md:text-5xl font-kugile italic text-foreground mb-4 leading-tight">
+              Explore endless possibilities
+            </h2>
+            <p className="text-muted-foreground max-w-lg text-lg leading-relaxed mb-14">
+              From curated packages to AI-powered custom planning — every kind of trip, covered.
+            </p>
+          </Reveal>
 
-            <div className="absolute bottom-12 left-4 sm:left-8 text-white flex items-center space-x-2 animate-bounce-slow">
-              <MapPin className="h-5 w-5" />
-              <span>Bali, Indonesia</span>
-            </div>
-
-            <div className="absolute bottom-12 right-4 sm:right-8 text-white">
-              <button className="flex items-center space-x-2 hover:space-x-4 transition-all duration-300 group">
-                <span>Explore more</span>
-                <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
-              </button>
-            </div>
-          </div>
-        </section>
-      </div>
-
-      {/* About Us Section */}
-      <section className="py-32 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center font-kugile">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 min-h-[550px]">
             <Reveal>
-              <div className="italic">
-                <h2 className="text-4xl md:text-5xl font-light text-gray-900 mb-8 leading-tight">
-                  We are a passionate team of travel enthusiasts dedicated to making your travel
-                  dreams come true.{" "}
-                  <span className="italic text-lilac/80 bg-clip-text text-transparent bg-gradient-to-tr from-orange-900 to-orange-100">
-                    Our mission is to provide you with the best travel experiences
-                  </span>
+              <div className="relative rounded-3xl overflow-hidden h-[350px] md:h-full group cursor-pointer">
+                <img
+                  src="https://images.pexels.com/photos/1659438/pexels-photo-1659438.jpeg"
+                  alt="Comprehensive Travel Support"
+                  loading="lazy"
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 p-8 md:p-10">
+                  <Badge className="bg-lilac-300/20 text-lilac-300 border-lilac-300/30 text-xs uppercase tracking-[0.2em] font-semibold mb-2 rounded-full h-auto px-3 py-1">Featured</Badge>
+                  <h3 className="text-2xl md:text-3xl font-kugile italic text-white mb-2">
+                    AI-Powered Planning
+                  </h3>
+                  <p className="text-white/60 text-sm max-w-md opacity-0 group-hover:opacity-100 translate-y-3 group-hover:translate-y-0 transition-all duration-500">
+                    Tell us your dream trip. Our AI builds a complete day-by-day itinerary with activities, meals, hotels, and insider tips.
+                  </p>
+                </div>
+              </div>
+            </Reveal>
+            <div className="grid grid-rows-2 gap-4 h-full">
+              {[
+                {
+                  img: "https://images.pexels.com/photos/1371360/pexels-photo-1371360.jpeg",
+                  label: "Expert Guidance",
+                  title: "Local Insights",
+                  desc: "Curated tips from seasoned travelers and local experts.",
+                },
+                {
+                  img: "https://images.pexels.com/photos/2166553/pexels-photo-2166553.jpeg",
+                  label: "200+ Places",
+                  title: "Global Destinations",
+                  desc: "From Goa to Switzerland — domestic and international coverage.",
+                },
+              ].map((card, i) => (
+                <Reveal key={i} delay={i * 200}>
+                  <div className="relative rounded-3xl overflow-hidden h-[250px] md:h-full group cursor-pointer">
+                    <img
+                      src={card.img}
+                      alt={card.title}
+                      loading="lazy"
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                    <div className="absolute bottom-0 left-0 right-0 p-8">
+                      <Badge className="bg-lilac-300/20 text-lilac-300 border-lilac-300/30 text-xs uppercase tracking-[0.2em] font-semibold mb-1.5 rounded-full h-auto px-3 py-1">{card.label}</Badge>
+                      <h3 className="text-xl font-kugile italic text-white mb-1">{card.title}</h3>
+                      <p className="text-white/50 text-xs opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-500">
+                        {card.desc}
+                      </p>
+                    </div>
+                  </div>
+                </Reveal>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ===================== FEATURED PACKAGES ===================== */}
+      <section className="py-28 px-6 sm:px-10 lg:px-16 bg-background">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col md:flex-row md:items-end justify-between mb-14 gap-6">
+            <Reveal>
+              <div>
+                <p className="text-xs uppercase tracking-[0.2em] text-lilac-600 dark:text-lilac-400 font-semibold mb-4">
+                  Top Rated
+                </p>
+                <h2 className="text-3xl md:text-5xl font-kugile italic text-foreground leading-tight">
+                  Handpicked packages
                 </h2>
               </div>
             </Reveal>
-            <div className="flex justify-between items-center gap-8 font-light">
-              <Reveal delay={200}>
-                <div className="text-center group hover:-translate-y-2 transition-transform duration-300">
-                  <h3 className="text-5xl  text-gray-900 mb-2 transition-colors">
-                    <CountUp
-                      end={200}
-                      suffix="+"
-                    />
-                  </h3>
-                  <p className="text-gray-500 text-sm font-medium uppercase tracking-wide">
-                    Happy Customers
-                  </p>
-                </div>
-              </Reveal>
-              <Reveal delay={400}>
-                <div className="text-center group hover:-translate-y-2 transition-transform duration-300 delay-100">
-                  <h3 className="text-5xl  text-gray-900 mb-2 transition-colors">
-                    <CountUp
-                      end={65}
-                      suffix="+"
-                    />
-                  </h3>
-                  <p className="text-gray-500 text-sm font-medium uppercase tracking-wide">
-                    Top Hotels
-                  </p>
-                </div>
-              </Reveal>
-              <Reveal delay={600}>
-                <div className="text-center group hover:-translate-y-2 transition-transform duration-300 delay-200">
-                  <h3 className="text-5xl  text-gray-900 mb-2  transition-colors">
-                    <CountUp
-                      end={250}
-                      suffix="+"
-                    />
-                  </h3>
-                  <p className="text-gray-500 text-sm font-medium uppercase tracking-wide">
-                    Experienced Guide
-                  </p>
-                </div>
-              </Reveal>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Our Service Section */}
-      <section className="py-24 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mb-16">
-            <h2 className="text-5xl md:text-6xl  font-thin text-gray-900 mb-5 font-kugile italic">
-              Explore endless <br />
-              <span className="italic text-lilac/80 bg-clip-text text-transparent bg-gradient-to-r from-teal-900 to-emerald-400">
-                options with our service
-              </span>
-            </h2>
-            <p className="text-gray-500 max-w-xl text-lg leading-relaxed">
-              Discover a myriad of choices available through our service, offering limitless
-              possibilities for your exploration and enjoyment
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 min-h-[600px]">
-            <div className="relative rounded-3xl overflow-hidden h-[400px] md:h-auto group cursor-pointer shadow-lg hover:shadow-2xl transition-all duration-500">
-              <img
-                src="https://images.pexels.com/photos/1659438/pexels-photo-1659438.jpeg"
-                alt="Comprehensive Travel Support"
-                className="w-full h-full object-cover transition duration-700 group-hover:scale-110"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-10 transition-opacity duration-300">
-                <h3 className="text-3xl font-bold text-white mb-3 transform translate-y-2 group-hover:translate-y-0 transition-transform duration-500">
-                  Comprehensive Travel Support
-                </h3>
-                <p className="text-white/90 text-base opacity-0 group-hover:opacity-100 transform translate-y-4 group-hover:translate-y-0 transition-all duration-500 delay-100">
-                  24/7 customer service to assist you before, during, and after your trip.
-                </p>
-              </div>
-            </div>
-            <div className="grid grid-rows-2 gap-3 h-full">
-              <div className="relative rounded-3xl overflow-hidden group cursor-pointer shadow-lg hover:shadow-2xl transition-all duration-500 h-[300px] md:h-auto">
-                <img
-                  src="https://images.pexels.com/photos/1371360/pexels-photo-1371360.jpeg"
-                  alt="Expert Travel Advice"
-                  className="w-full h-full object-cover transition duration-700 group-hover:scale-110"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-10">
-                  <h3 className="text-2xl font-bold text-white mb-2 transform translate-y-2 group-hover:translate-y-0 transition-transform duration-500">
-                    Expert Travel Advice
-                  </h3>
-                  <p className="text-white/90 text-sm opacity-0 group-hover:opacity-100 transform translate-y-4 group-hover:translate-y-0 transition-all duration-500 delay-100">
-                    Tips and guides to enhance your travel experience.
-                  </p>
-                </div>
-              </div>
-              <div className="relative rounded-3xl overflow-hidden group cursor-pointer shadow-lg hover:shadow-2xl transition-all duration-500 h-[300px] md:h-auto">
-                <img
-                  src="https://images.pexels.com/photos/2166553/pexels-photo-2166553.jpeg"
-                  alt="Diverse Destinations"
-                  className="w-full h-full object-cover transition duration-700 group-hover:scale-110"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-10">
-                  <h3 className="text-2xl font-bold text-white mb-2 transform translate-y-2 group-hover:translate-y-0 transition-transform duration-500">
-                    Diverse Destinations
-                  </h3>
-                  <p className="text-white/90 text-sm opacity-0 group-hover:opacity-100 transform translate-y-4 group-hover:translate-y-0 transition-all duration-500 delay-100">
-                    Access to a wide range of domestic and international locations.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Partners Section */}
-      <section className="py-24 bg-white border-y border-gray-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-wrap justify-center items-center gap-32 opacity-60 ">
-            <img
-              src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/69/Airbnb_Logo_B%C3%A9lo.svg/512px-Airbnb_Logo_B%C3%A9lo.svg.png"
-              alt="Airbnb"
-              className="h-12 object-contain hover:scale-110 transition-transform duration-300 cursor-pointer"
-            />
-            <img
-              src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/be/Booking.com_logo.svg/512px-Booking.com_logo.svg.png"
-              alt="Booking.com"
-              className="h-10 object-contain hover:scale-110 transition-transform duration-300 cursor-pointer"
-            />
-            <img
-              src="https://promos.makemytrip.com/Growth/Images/3x/mmt_dt_header_icon_3x.png"
-              alt="MakeMyTrip"
-              className="h-12 object-contain hover:scale-110 transition-transform duration-300 cursor-pointer"
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* Our Package Section */}
-      <section className="py-24 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-20">
-            <h2 className="text-5xl md:text-6xl text-gray-900 font-light font-kugile italic">
-              Discover our exceptional{" "}
-              <span className="italic text-lilac/80 bg-clip-text text-transparent bg-gradient-to-r from-pink-500 to-red-100">
-                selection of travel packages and destinations
-              </span>
-            </h2>
+            <Reveal delay={200}>
+              <Button asChild variant="link" className="text-lilac-600 dark:text-lilac-400 hover:text-lilac-700 dark:hover:text-lilac-300 p-0 h-auto font-medium text-sm">
+                <Link to="/packages" className="flex items-center gap-2">
+                  View all packages
+                  <ArrowRight size={14} className="group-hover/button:translate-x-1 transition-transform" />
+                </Link>
+              </Button>
+            </Reveal>
           </div>
 
           {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {[1, 2, 3].map((i) => (
-                <div
-                  key={i}
-                  className="h-[500px] bg-gray-100 rounded-3xl animate-pulse"></div>
+                <Skeleton key={i} className="h-[480px] rounded-3xl" />
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              {popularPackages.map((pkg) => (
-                <Link
-                  key={pkg.id}
-                  to={`/packages/${pkg.id}`}
-                  className="group relative h-[550px] rounded-3xl overflow-hidden cursor-pointer shadow-xl hover:shadow-2xl transition-all duration-500">
-                  <img
-                    src={pkg.images[0]}
-                    alt={pkg.title}
-                    className="w-full h-full object-cover transition duration-1000 group-hover:scale-110"
-                  />
-                  <div className="absolute top-6 left-6 bg-white/20 backdrop-blur-md px-5 py-2 rounded-full text-white text-sm font-medium border border-white/30 shadow-sm">
-                    {pkg.duration_days} day, {pkg.duration_nights} night
-                  </div>
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent flex flex-col justify-end p-8 transition-all duration-300">
-                    <h3 className="text-2xl font-bold text-white mb-3 transform translate-y-2 group-hover:translate-y-0 transition-transform duration-500">
-                      {pkg.title}
-                    </h3>
-                    <p className="text-white/80 text-sm mb-6 line-clamp-2 opacity-0 group-hover:opacity-100 transform translate-y-4 group-hover:translate-y-0 transition-all duration-500 delay-100">
-                      {pkg.description}
-                    </p>
-                    <div className="inline-block border border-white/50 text-white px-8 py-3 rounded-full text-sm font-medium hover:bg-white hover:text-black transition-all duration-300 text-center w-fit hover:scale-105">
-                      Choose package
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {popularPackages.map((pkg, i) => (
+                <Reveal key={pkg.id} delay={i * 150}>
+                  <Link
+                    to={`/packages/${pkg.id}`}
+                    className="group relative h-[480px] rounded-3xl overflow-hidden block">
+                    <img
+                      src={pkg.images[0]}
+                      alt={pkg.title}
+                      loading="lazy"
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent" />
+
+                    {/* Top badges */}
+                    <div className="absolute top-5 left-5 right-5 flex justify-between items-start">
+                      <Badge className="bg-white/15 backdrop-blur-md text-white text-xs font-medium px-4 py-1.5 rounded-full border border-white/20 h-auto">
+                        {pkg.duration_days}D / {pkg.duration_nights}N
+                      </Badge>
+                      <Badge className="bg-white/15 backdrop-blur-md text-white text-xs font-medium px-3 py-1.5 rounded-full border border-white/20 h-auto flex items-center gap-1">
+                        <Star size={10} fill="currentColor" /> {pkg.rating}
+                      </Badge>
                     </div>
-                  </div>
-                </Link>
+
+                    {/* Bottom content */}
+                    <div className="absolute bottom-0 left-0 right-0 p-7">
+                      <p className="text-lilac-300 text-xs uppercase tracking-[0.15em] font-semibold mb-2">
+                        {pkg.destination}
+                      </p>
+                      <h3 className="text-xl font-kugile italic text-white mb-2 leading-tight">
+                        {pkg.title}
+                      </h3>
+                      <p className="text-white/50 text-xs mb-4 line-clamp-2 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-500">
+                        {pkg.description}
+                      </p>
+                      <div className="flex items-center justify-between">
+                        <span className="text-white font-semibold text-lg">
+                          ₹{pkg.price_per_person.toLocaleString()}
+                          <span className="text-white/40 text-xs font-normal ml-1">/ person</span>
+                        </span>
+                        <Badge className="text-white/60 text-xs border border-white/20 px-4 py-2 rounded-full bg-transparent group-hover:bg-white group-hover:text-foreground transition-all duration-300 h-auto">
+                          View details
+                        </Badge>
+                      </div>
+                    </div>
+                  </Link>
+                </Reveal>
               ))}
             </div>
           )}
         </div>
       </section>
 
-      {/* FAQs Section */}
-      <section className="py-32 bg-gradient-to-tr from-white to-gray-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-20">
-            <div>
-              <h2 className="text-5xl md:text-6xl font-light text-gray-900 mb-4 italic font-kugile">
-                Frequently Asked{" "}
-                <span className="italic text-lilac/80 bg-clip-text text-transparent bg-gradient-to-r from-yellow-700 to-yellow-300">
-                  Questions
-                </span>
-              </h2>
-              <p className="text-gray-500 text-lg leading-relaxed">
-                We believe in the power of collective action to address the urgent environmental
-                challenges facing our planet.
-              </p>
-            </div>
-            <div className="space-y-6">
-              {faqs.map((faq, index) => (
-                <div
-                  key={index}
-                  className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300">
-                  <button
-                    className="w-full px-8 py-6 text-left flex items-center justify-between focus:outline-none group"
-                    onClick={() => setOpenFaq(openFaq === index ? null : index)}>
-                    <span className="font-medium text-gray-900 text-lg  transition-colors">
-                      {faq.question}
-                    </span>
-                    {openFaq === index ? (
-                      <Minus className="h-6 w-6  transition-transform duration-300" />
-                    ) : (
-                      <Plus className="h-6 w-6 text-gray-400 transition-transform duration-300" />
-                    )}
-                  </button>
-                  <div
-                    className={`px-8 overflow-hidden transition-all duration-300 ease-in-out ${
-                      openFaq === index ? "max-h-48 pb-6 opacity-100" : "max-h-0 opacity-0"
-                    }`}>
-                    <p className="text-gray-500 leading-relaxed">{faq.answer}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Review Section */}
-      <section className="py-32 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-20">
-            <h2 className="text-5xl md:text-6xl font-light text-gray-900 font-kugile italic">
-              Your trusted{" "}
-              <span className="italic text-lilac/80 bg-clip-text text-transparent bg-gradient-to-r from-blue-200 to-blue-600">
-                partner in travel
-              </span>
+      {/* ===================== TESTIMONIALS ===================== */}
+      <section className="py-28 px-6 sm:px-10 lg:px-16 bg-muted/50">
+        <div className="max-w-7xl mx-auto">
+          <Reveal>
+            <p className="text-xs uppercase tracking-[0.2em] text-lilac-600 dark:text-lilac-400 font-semibold mb-4">
+              Testimonials
+            </p>
+            <h2 className="text-3xl md:text-5xl font-kugile italic text-foreground mb-14 leading-tight">
+              Loved by travelers
             </h2>
-          </div>
+          </Reveal>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            {testimonials.map((testimonial, index) => (
-              <div
-                key={index}
-                className="bg-gray-50 p-10 rounded-3xl hover:bg-white hover:shadow-xl transition-all duration-300 border border-transparent hover:border-gray-100 group">
-                <div className="flex items-center mb-8">
-                  <img
-                    src={testimonial.image}
-                    alt={testimonial.name}
-                    className="w-14 h-14 rounded-full object-cover mr-4 ring-2 ring-white shadow-md group-hover:scale-110 transition-transform duration-300"
-                  />
-                  <div>
-                    <h4 className="font-bold text-gray-900 text-lg">{testimonial.name}</h4>
-                    <p className="text-xs text-gray-500 uppercase tracking-wide font-medium">
-                      {testimonial.role}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {testimonials.map((t, i) => (
+              <Reveal key={i} delay={i * 150}>
+                <Card className="rounded-2xl ring-0 border border-border hover:shadow-lg hover:border-lilac-200 dark:hover:border-lilac-800 transition-all duration-300 h-full flex flex-col">
+                  <CardContent className="p-8 flex flex-col h-full">
+                    <Quote size={24} className="text-lilac-300 dark:text-lilac-700 mb-4 flex-shrink-0" />
+                    <p className="text-muted-foreground leading-relaxed text-sm mb-8 flex-grow">
+                      {t.text}
                     </p>
-                  </div>
-                </div>
-                <p className="text-gray-600 leading-relaxed text-base italic">
-                  "{testimonial.text}"
-                </p>
-              </div>
+                    <Separator className="mb-4" />
+                    <div className="flex items-center gap-3 flex-shrink-0">
+                      <img
+                        src={t.image}
+                        alt={t.name}
+                        className="w-10 h-10 rounded-full object-cover ring-2 ring-lilac-100 dark:ring-lilac-900"
+                      />
+                      <div>
+                        <p className="font-semibold text-foreground text-sm">{t.name}</p>
+                        <p className="text-xs text-muted-foreground">{t.role}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Reveal>
             ))}
           </div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-32">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="relative rounded-[2.5rem] overflow-hidden h-[500px] shadow-2xl group">
-            <img
-              src="https://images.pexels.com/photos/2108845/pexels-photo-2108845.jpeg"
-              alt="CTA Background"
-              className="w-full h-full object-cover transition duration-1000 group-hover:scale-105"
-            />
-            <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-center px-4">
-              <h2 className="text-4xl md:text-6xl font-bold text-white mb-10 max-w-4xl leading-tight font-kugile">
-                Don't wait any longer! Start your adventure and explore new experiences today
-              </h2>
-              <div className="bg-white/20 backdrop-blur-md p-2 rounded-full flex w-full max-w-lg border border-white/30 shadow-lg hover:bg-white/25 transition-all duration-300">
-                <input
-                  type="email"
-                  placeholder="Drop your email address here..."
-                  className="bg-transparent flex-1 px-8 py-3 text-white placeholder-white/70 focus:outline-none text-lg"
-                />
-                <button className="bg-white text-gray-900 px-10 py-3 rounded-full font-bold hover:bg-gray-100 hover:scale-105 transition-all duration-300 shadow-md">
-                  Subscribe
-                </button>
-              </div>
-            </div>
+      {/* ===================== FAQ ===================== */}
+      <section className="py-28 px-6 sm:px-10 lg:px-16 bg-background">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-16">
+          <Reveal className="lg:col-span-5">
+            <p className="text-xs uppercase tracking-[0.2em] text-lilac-600 dark:text-lilac-400 font-semibold mb-4">
+              FAQ
+            </p>
+            <h2 className="text-3xl md:text-5xl font-kugile italic text-foreground mb-6 leading-tight">
+              Got questions?
+            </h2>
+            <p className="text-muted-foreground text-lg leading-relaxed">
+              Everything you need to know about planning and booking your trip with Travellah.
+            </p>
+          </Reveal>
+
+          <div className="lg:col-span-7">
+            <Accordion type="single" collapsible className="flex flex-col gap-3">
+              {faqs.map((faq, index) => (
+                <AccordionItem
+                  key={index}
+                  value={`faq-${index}`}
+                  className="rounded-2xl border border-border bg-card px-6 data-[state=open]:bg-lilac-50 dark:data-[state=open]:bg-lilac-950/30 data-[state=open]:border-lilac-200 dark:data-[state=open]:border-lilac-800 hover:border-muted-foreground/20 transition-all duration-300"
+                >
+                  <AccordionTrigger className="py-5 text-[15px] font-medium text-foreground hover:no-underline">
+                    {faq.question}
+                  </AccordionTrigger>
+                  <AccordionContent className="text-muted-foreground text-sm leading-relaxed pb-6">
+                    {faq.answer}
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
           </div>
         </div>
       </section>
 
-      {/* Top Section: Big Heading & CTA */}
-      <div className="flex flex-col items-center text-center mb-24">
-        <h2 className="text-5xl md:text-7xl text-gray-900 mb-12  tracking-tight font-kugile">
-          The world is{" "}
-          <span className="italic text-lilac/80 bg-clip-text text-transparent bg-gradient-to-r from-purple-950 to-purple-200">
-            accessible.
-          </span>
-        </h2>
-        <Link
-          to="/packages"
-          className="bg-gray-900 text-white px-10 py-4 rounded-full font-medium hover:bg-gray-800 transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-1">
-          Start your journey
-        </Link>
-      </div>
+      {/* ===================== CTA ===================== */}
+      <section className="py-20 px-6 sm:px-10 lg:px-16">
+        <div className="max-w-7xl mx-auto">
+          <div className="relative rounded-3xl overflow-hidden min-h-[420px] flex items-center">
+            <img
+              src="https://images.pexels.com/photos/2108845/pexels-photo-2108845.jpeg"
+              alt="Start your journey"
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-black/30" />
+            <div className="relative z-10 px-10 md:px-16 py-16 max-w-2xl">
+              <Reveal>
+                <p className="text-lilac-300 text-xs uppercase tracking-[0.2em] font-semibold mb-4">
+                  Start Today
+                </p>
+                <h2 className="text-3xl md:text-5xl font-kugile italic text-white leading-tight mb-6">
+                  Your next adventure is one click away
+                </h2>
+                <p className="text-white/50 text-sm leading-relaxed mb-8 max-w-md">
+                  Let our AI craft a personalized itinerary that matches your budget, interests, and travel style — in seconds, not hours.
+                </p>
+                <div className="flex flex-wrap gap-4">
+                  <Button asChild className="rounded-full px-8 py-3.5 h-auto bg-white text-foreground hover:bg-lilac-100 font-medium text-sm">
+                    <Link to="/smart-planner" className="flex items-center gap-2">
+                      Plan My Trip
+                      <ArrowRight size={14} className="group-hover/button:translate-x-1 transition-transform" />
+                    </Link>
+                  </Button>
+                  <Button asChild variant="outline" className="rounded-full px-8 py-3.5 h-auto border-white/30 text-white bg-transparent hover:bg-white/10 font-medium text-sm">
+                    <Link to="/explore-map" className="flex items-center gap-2">
+                      <MapPin size={14} />
+                      Explore Map
+                    </Link>
+                  </Button>
+                </div>
+              </Reveal>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
